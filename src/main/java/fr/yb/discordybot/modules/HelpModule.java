@@ -1,18 +1,10 @@
 package fr.yb.discordybot.modules;
 
 import fr.yb.discordybot.BotModule;
-import java.time.Duration;
-import java.time.LocalDateTime;
-import java.time.temporal.TemporalAmount;
-import java.util.Arrays;
 import java.util.Collection;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import sx.blah.discord.handle.impl.events.guild.channel.message.MessageReceivedEvent;
-import sx.blah.discord.handle.obj.IUser;
 import sx.blah.discord.util.DiscordException;
 import sx.blah.discord.util.MissingPermissionsException;
 import sx.blah.discord.util.RateLimitException;
@@ -28,59 +20,12 @@ import sx.blah.discord.util.RateLimitException;
  * @author Nicolas
  */
 public class HelpModule extends BotModule {
-    
-    private class Hug {
-        public LocalDateTime last = LocalDateTime.now();
-        public int count;
-    }
-    
-    private final Map<IUser, Hug> lastHugs = new HashMap<>();
-    
-    public static final int MODIFIER_WORST = -10;
-    public static final int MODIFIER_NORMAL = 4;
-    public static final int MODIFIER_DECREASES_AFTER = 5;
-    public static final TemporalAmount COOLDOWN_RESET_TIME = Duration.ofMinutes(5);
-    public static final double CHANCE_EXTRA = 0.01;
-    public static final int MODIFIER_EXTRA = 30;
-    
-    public static final List<String> TRIGGERS = Arrays.asList(
-        "pat ybot",
-        "cuddle ybot",
-        "brushie ybot",
-        "hug ybot",
-        "good ybot",
-        "good bot"
-    );
-    
-    public static final List<String> REPLIES = Arrays.asList(
-        "[pleased bot noises]",
-        "[happy bot noises]"
-    );
-    
-    public static final List<String> HARASS = Arrays.asList(
-        "[uncomfortable bot noises]",
-        "This is getting out of hand",
-        "Please no, it's too much",
-        "Can you stop, please?",
-        "You should really stop now"
-    );
-    
-    public static final List<String> HARASS_BAD = Arrays.asList(
-        "Fuck off",
-        "Seriously, go away",
-        "Get off me!",
-        "***REEEEEEEEEE***",
-        "*[Hissing]*",
-        "Back the fuck off!?!?"
-    );
-    
-    public static final String REPLY_EXTRA = " !!! CRITICAL COMPLIMENT !!! [SUPER HAPPY BOT NOISES]";
 
     @Override
     public boolean handle(MessageReceivedEvent t) {
         try {
             String msg = t.getMessage().getContent();
-            String reply = "";
+            String reply;
             int extraLen = "ybot help ".length();
             if (msg.length() > extraLen) {
                 String rest = msg.substring(extraLen);
