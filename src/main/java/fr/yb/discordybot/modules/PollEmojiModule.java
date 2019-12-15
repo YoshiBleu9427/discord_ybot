@@ -19,7 +19,6 @@ import sx.blah.discord.util.RateLimitException;
  */
 public class PollEmojiModule extends BotModule {
 
-    public static final String TRIGGER = "[S]";
     public static final String[] EMOJI_NAMES = {
         "white_check_mark",
         "x"
@@ -28,7 +27,6 @@ public class PollEmojiModule extends BotModule {
     @Override
     public boolean handle(MessageReceivedEvent t) {
         try {
-            Logger.getLogger(PollEmojiModule.class.getName()).log(Level.INFO, "YES");
             for (String emojiName : EMOJI_NAMES) {
                 t.getMessage().addReaction(":" + emojiName + ":"); // TODO find how to get a list of IEmoji for default emojis
                 // wait 500ms to prevent getting rate limited (delay time could be tuned)
@@ -47,7 +45,7 @@ public class PollEmojiModule extends BotModule {
 
     @Override
     public String help() {
-        return "**PollEmojiModule**: If your message contains " + TRIGGER
+        return "**PollEmojiModule**: If your message contains `[S]` or starts with `Poll:`"
                 + ", makes ybot react with poll emojis (:white_check_mark: and :x:) \n";
     }
 
@@ -61,6 +59,9 @@ public class PollEmojiModule extends BotModule {
         if (this.getUtil().isDM(t)) {
             return false;
         }
-        return (t.getMessage().getContent().contains(TRIGGER));
+        if (t.getMessage().getContent().toLowerCase().startsWith("poll:")) {
+            return true;
+        }
+        return (t.getMessage().getContent().contains("[S]"));
     }
 }
