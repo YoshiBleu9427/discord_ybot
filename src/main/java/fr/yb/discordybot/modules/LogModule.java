@@ -46,7 +46,7 @@ public class LogModule extends BotModule {
 
     @Override
     public String help() {
-        return "";
+        return "Logs stuff in the console.\n";
     }
 
     @Override
