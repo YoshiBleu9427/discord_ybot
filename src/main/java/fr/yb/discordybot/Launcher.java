@@ -64,6 +64,7 @@ public class Launcher {
                 "LoginModule",
                 "GreetModule",
                 "TemModule",
+                "PollEmojiModule",
                 "ConsoleModule",
                 "LogModule",
                 "RandomFactModule",
