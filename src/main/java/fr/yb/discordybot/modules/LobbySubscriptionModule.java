@@ -1,6 +1,5 @@
 package fr.yb.discordybot.modules;
 
-import com.google.gson.Gson;
 import fr.yb.discordybot.BotModule;
 import fr.yb.discordybot.gg2.LobbyData;
 import fr.yb.discordybot.gg2.LobbyReader;
@@ -138,8 +137,6 @@ public class LobbySubscriptionModule extends BotModule {
 
     @Override
     public boolean handle(MessageReceivedEvent t) {
-        Gson gson = new Gson();
-        
         String cmd = t.getMessage().getContent().toLowerCase();
         String reply = this.help();
         
