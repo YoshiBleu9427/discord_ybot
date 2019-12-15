@@ -135,7 +135,7 @@ public class HugModule extends BotModule {
 
     @Override
     public String help() {
-        return "**HugModule**: Allows YBot to enjoy !cuddles, !hugs and !brushies.\n";
+        return "**HugModule**: Allows YBot to enjoy a !cuddle, !hug or !brushie.\n";
     }
 
     @Override
