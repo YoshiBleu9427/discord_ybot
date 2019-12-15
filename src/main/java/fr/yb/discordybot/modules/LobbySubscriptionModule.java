@@ -269,11 +269,11 @@ public class LobbySubscriptionModule extends BotModule {
     @Override
     public String help() {
         return "**LobbySubscriptionModule**: Makes ybot notify you when there are "
-                + "at least X people playing Gang Garrison 2. Commands: "
-                + COMMAND_ADD + ", " + COMMAND_LIST + ", " + COMMAND_REMOVE
-                + ". Add an extra `chan` to the command to subscribe the channel "
-                + "instead of you, if you're the server admin (ie. "
-                + COMMAND_ADD_CHANNEL + ".\n";
+                + "at least X people playing Gang Garrison 2. Commands: `"
+                + COMMAND_ADD + "`, `" + COMMAND_LIST + "`, `" + COMMAND_REMOVE
+                + "`. Add an extra `chan` to the command to subscribe the channel "
+                + "instead of you, if you're the server admin (ie. `"
+                + COMMAND_ADD_CHANNEL + "`).\n";
     }
 
     @Override
