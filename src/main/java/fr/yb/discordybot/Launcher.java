@@ -70,6 +70,7 @@ public class Launcher {
                 "RandomFactModule",
                 "ChooseModule",
                 "ThanksModule",
+                "MinesweeperModule",
                 "HugModule",
                 "EveryoneShunModule",
                 "QuestionModule",
