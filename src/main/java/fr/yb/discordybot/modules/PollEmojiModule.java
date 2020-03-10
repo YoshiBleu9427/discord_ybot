@@ -51,7 +51,7 @@ public class PollEmojiModule extends BotModule {
 
     @Override
     public int getPriority() {
-        return 50;
+        return 40;
     }
 
     @Override
