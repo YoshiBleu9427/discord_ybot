@@ -90,7 +90,7 @@ public class ProfileModule extends BotModule {
         if (!this.getBot().getUtil().isMessageFromOwner(t)) {
             return false;
         }
-        String msg = t.getMessage().getContent();
+        String msg = t.getMessage().getContent().toLowerCase();
         if (msg.startsWith(ProfileModule.UPDATE_PROFILE_PLAY)) {
             return true;
         }
