@@ -104,31 +104,34 @@ public class LobbySubscriptionModule extends BotModule {
         final int prevNb = this.previousPlayerCount;
         final int currNb = nbPlayers;
         this.getBot().getModel().getLobbySubscriptions().forEach((k,v) -> {
-            // if previously was under threshold, but now is above, notify
-            if ((prevNb < v.getLevel()) && (currNb > v.getLevel())) {
-                v.getId();
-                long longID = Long.parseLong(v.getId());
-                String notification = String.format(NOTIFY_TEXT, currNb);
-                if (v.isChannel()) {
-                    IChannel chan = this.getBot().getClient().getChannelByID(longID);
-                    if (chan != null) {
-                        chan.sendMessage(notification);
-                    } else {
-                        Logger.getLogger(LobbySubscriptionModule.class.getName()).log(Level.WARNING, "Unknown channel ID " + longID);
-                    }
-                } else {
-                    IUser target = this.getBot().getClient().getUserByID(longID);
-                    if (target != null) {
-                        IChannel chan = target.getOrCreatePMChannel();
+            try {
+                // if previously was under threshold, but now is above, notify
+                if ((prevNb < v.getLevel()) && (currNb > v.getLevel())) {
+                    long longID = Long.parseLong(v.getId());
+                    String notification = String.format(NOTIFY_TEXT, currNb);
+                    if (v.isChannel()) {
+                        IChannel chan = this.getBot().getClient().getChannelByID(longID);
                         if (chan != null) {
                             chan.sendMessage(notification);
                         } else {
-                            Logger.getLogger(LobbySubscriptionModule.class.getName()).log(Level.WARNING, "Cannot get channel for user ID " + longID);
+                            Logger.getLogger(LobbySubscriptionModule.class.getName()).log(Level.WARNING, "Unknown channel ID " + longID);
                         }
                     } else {
-                        Logger.getLogger(LobbySubscriptionModule.class.getName()).log(Level.WARNING, "Unknown user ID " + longID);
+                        IUser target = this.getBot().getClient().getUserByID(longID);
+                        if (target != null) {
+                            IChannel chan = target.getOrCreatePMChannel();
+                            if (chan != null) {
+                                chan.sendMessage(notification);
+                            } else {
+                                Logger.getLogger(LobbySubscriptionModule.class.getName()).log(Level.WARNING, "Cannot get channel for user ID {0}", longID);
+                            }
+                        } else {
+                            Logger.getLogger(LobbySubscriptionModule.class.getName()).log(Level.WARNING, "Unknown user ID {0}", longID);
+                        }
                     }
                 }
+            } catch (Exception ex) {
+                Logger.getLogger(LobbySubscriptionModule.class.getName()).log(Level.SEVERE, "Uncaught exception in the lobby subscription loop", ex);
             }
         });
         
