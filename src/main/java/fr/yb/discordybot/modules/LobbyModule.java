@@ -58,11 +58,11 @@ public class LobbyModule extends BotModule {
             if (infos.containsKey("game_short")) {
                 sb.append(infos.get("game_short")).append(" ");
             }
-            if (infos.containsKey("game")) {
-                sb.append(infos.get("game")).append(" ");
-            }
             if (infos.containsKey("game_ver")) {
                 sb.append(infos.get("game_ver")).append(" ");
+            }
+            if (infos.containsKey("map")) {
+                sb.append(infos.get("map")).append(" ");
             }
             sb.append("\n");
         }
