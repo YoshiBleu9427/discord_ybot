@@ -69,6 +69,14 @@ public class LobbyModule extends BotModule {
         sb.append("```");
         return sb.toString();
     }
+    
+    private int countPlayers(LobbyData datagram) {
+        int nbPlayers = 0;
+        for (LobbyServerData serverDatagram : datagram.getServerData()) {
+            nbPlayers += serverDatagram.getPlayers();
+        }
+        return nbPlayers;
+    }
 
     @Override
     public boolean handle(MessageReceivedEvent t) {
@@ -82,7 +90,12 @@ public class LobbyModule extends BotModule {
                 message.edit("Waiting for response from lobby...");
                 LobbyData datagram = LobbyReader.readResponse(s);
                 String reply = this.dataToString(datagram);
-                message.edit("Done! " + reply);
+                int nbPlayers = this.countPlayers(datagram);
+                if (t.getMessage().getContent().toLowerCase().contains("count")) {
+                    message.edit(String.format("Done! There are %d players online.", nbPlayers, reply));
+                } else {
+                    message.edit(String.format("Done! There are %d players online. %s", nbPlayers, reply));
+                }
             } catch (IOException ex) {
                 message.edit(errMsg + " " + ex.toString());
                 Logger.getLogger(LobbyModule.class.getName()).log(Level.WARNING, null, ex);
