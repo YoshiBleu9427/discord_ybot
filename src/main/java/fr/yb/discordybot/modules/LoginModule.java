@@ -52,7 +52,7 @@ public class LoginModule extends BotModule {
 
     @Override
     public String help() {
-        return "**LoginModule**: So YBot can connect\n";
+        return "**LoginModule**: So "+this.getUtil().getName()+" can connect\n";
     }
 
     @Override
@@ -62,6 +62,11 @@ public class LoginModule extends BotModule {
 
     @Override
     public boolean isInterestedIn(MessageReceivedEvent t) {
-        return this.getUtil().isMessageFromOwner(t) && (t.getMessage().getContent().trim().equalsIgnoreCase("ybot quit"));
+        return this.getUtil().isMessageFromOwner(t) && super.isInterestedIn(t);
+    }
+
+    @Override
+    public String getCommand() {
+        return "quit";
     }
 }

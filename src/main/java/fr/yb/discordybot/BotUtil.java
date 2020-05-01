@@ -18,6 +18,7 @@ import sx.blah.discord.handle.obj.IUser;
 public class BotUtil {
     
     private final Bot bot;
+    private String cachedName;
     public static final Random random = new Random();
 
     public BotUtil(Bot bot) {
@@ -39,6 +40,13 @@ public class BotUtil {
         
     }
     
+    public String getName() {
+        if (this.cachedName == null) {
+            this.cachedName = this.bot.getClient().getOurUser().getName();
+        }
+        return this.cachedName;
+    }
+    
     public boolean isDM(MessageReceivedEvent t) {
         return (t.getGuild() == null);
     }
@@ -50,11 +58,11 @@ public class BotUtil {
         if (t.getMessage().getMentions().contains(this.bot.getClient().getOurUser())) {
             return true;
         }
-        return (t.getMessage().getContent().toLowerCase().contains("ybot"));
+        return (t.getMessage().getContent().toLowerCase().contains(this.getName().toLowerCase()));
     }
     
     public boolean isMessageFromOwner(MessageReceivedEvent t) {
-        return t.getAuthor().getStringID().equals(this.bot.getOwnerID());
+        return t.getAuthor().getStringID().equals(this.bot.getConfig().getOwnerID());
     }
     
     public String getLocalUsername(IUser u, MessageReceivedEvent t) {

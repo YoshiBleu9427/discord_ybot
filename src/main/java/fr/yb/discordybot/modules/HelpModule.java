@@ -26,7 +26,7 @@ public class HelpModule extends BotModule {
         try {
             String msg = t.getMessage().getContent();
             String reply;
-            int extraLen = "ybot help ".length();
+            int extraLen = (this.getFullCommand() + " ").length();
             if (msg.length() > extraLen) {
                 String rest = msg.substring(extraLen);
                 Collection<BotModule> modules = this.getBot().getLoader().getInstances().values();
@@ -46,7 +46,9 @@ public class HelpModule extends BotModule {
                     String smolClassName = fullClassName.substring(fullClassName.lastIndexOf('.') + 1);
                     sb.append(String.format("%1$-32s", smolClassName));
                 }
-                sb.append("```\nSend `ybot help <moduleName>` for more detailed help about a module.");
+                sb.append("```\nSend `")
+                        .append(this.getFullCommand())
+                        .append(" <moduleName>` for more detailed help about a module.");
                 reply = sb.toString();
             }
             
@@ -64,15 +66,12 @@ public class HelpModule extends BotModule {
 
     @Override
     public String help() {
-        return "**HelpModule**: Shows this help for every module. `YBOT HELP`\n";
+        return "**HelpModule**: Shows this help for every module. `"+this.getFullCommand()+"`\n";
     }
 
     @Override
-    public boolean isInterestedIn(MessageReceivedEvent t) {
-        if (!this.getUtil().isMessageForMe(t)) {
-            return false;
-        }
-        return t.getMessage().getContent().toLowerCase().startsWith("ybot help");
+    public String getCommand() {
+        return "help";
     }
 
 }

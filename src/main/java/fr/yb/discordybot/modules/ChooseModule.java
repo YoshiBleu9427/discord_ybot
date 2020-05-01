@@ -54,8 +54,9 @@ public class ChooseModule extends BotModule {
     }
 
     private List<String> tokenize(String answer) {
-        if (answer.toLowerCase().startsWith("ybot,")) {
-            answer = answer.substring("ybot,".length());
+        String lowerCaseNameComma = this.getUtil().getName().toLowerCase() + ",";
+        if (answer.toLowerCase().startsWith(lowerCaseNameComma)) {
+            answer = answer.substring(lowerCaseNameComma.length());
         }
         answer = answer.replace("?", "");
         String[] split = answer.split("(?i)( or )|\\,");
@@ -89,7 +90,7 @@ public class ChooseModule extends BotModule {
 
     @Override
     public String help() {
-        return "**ChooseModule**: Selects a random item in a sentence. `Ybot, a, b or c?`\n";
+        return "**ChooseModule**: Selects a random item in a sentence. `"+this.getUtil().getName()+", a, b or c?`\n";
     }
 
     @Override
@@ -104,4 +105,8 @@ public class ChooseModule extends BotModule {
         return matcher.find();
     }
 
+    @Override
+    public String getCommand() {
+        return "";
+    }
 }

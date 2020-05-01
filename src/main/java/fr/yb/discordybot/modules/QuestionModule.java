@@ -68,7 +68,7 @@ public class QuestionModule extends BotModule {
 
     @Override
     public String help() {
-        return "**QuestionModule**: Answers yes/no questions. `YBot, am I cool?`\n";
+        return "**QuestionModule**: Answers yes/no questions. `"+this.getUtil().getName()+", am I cool?`\n";
     }
 
     @Override
@@ -82,6 +82,11 @@ public class QuestionModule extends BotModule {
             return false;
         }
         return t.getMessage().getContent().toLowerCase().endsWith("?");
+    }
+
+    @Override
+    public String getCommand() {
+        return "";
     }
 
 }

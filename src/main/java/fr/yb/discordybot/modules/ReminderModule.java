@@ -37,7 +37,7 @@ public class ReminderModule extends BotModule {
     public static final String REGEX = "remind(er| me) (to |for |about )?";
     public static final String REGEX_CAPTURE = "remind(er| me) (to |for |about )?(.*)";
     public static final String REPLY = "Reminder set at %s!";
-    public static final String HELP = "`ybot remind(er|me ) <something> (in <x> (seconds|minutes|hours) | at hh:mm[:ss])`";
+    public static final String HELP = "`ybot remind(er|me ) <something> (in <x> (seconds|minutes|hours) | at hh:mm[:ss])`"; // TODO
     public static final String REMIND_TEXT = "%s, reminder for %s";
     
     public class MisunderstandException extends Exception {
@@ -114,6 +114,7 @@ public class ReminderModule extends BotModule {
             int lastAt = interestingPart.lastIndexOf("at ");
             int lastInAt = Integer.max(lastIn, lastAt);
             
+            // TODO
             int lastYbot = interestingPart.lastIndexOf("ybot");
             int last = Integer.min(lastInAt, lastYbot);
             if (lastInAt < 0) {
@@ -326,7 +327,8 @@ public class ReminderModule extends BotModule {
 
     @Override
     public String help() {
-        return "**ReminderModule**: Gives YBot more memory than you. `ybot remind me to take out the laundry in x minutes`. Ask `ybot reminder` for details\n";
+        return "**ReminderModule**: Gives "+this.getUtil().getName()+" more memory than you. `"
+                +this.getUtil().getName()+" remind me to take out the laundry in x minutes`. Ask `"+this.getUtil().getName()+" reminder` for details\n";
     }
 
     @Override
@@ -352,6 +354,11 @@ public class ReminderModule extends BotModule {
             return false;
         }
         return true;
+    }
+
+    @Override
+    public String getCommand() {
+        return "";
     }
 
 }

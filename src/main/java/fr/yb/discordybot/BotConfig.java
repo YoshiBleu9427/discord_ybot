@@ -14,8 +14,9 @@ import java.util.List;
  * @author Nicolas
  */
 public class BotConfig implements Serializable {
-    
+
     private String ownerID;
+    private String prefix;
     private String token;
     private String modelFile;
     private List<String> modules;
@@ -24,8 +25,9 @@ public class BotConfig implements Serializable {
         this.modules = new ArrayList<>();
     }
 
-    public BotConfig(String ownerID, String token, String modelFile, List<String> modules) {
+    public BotConfig(String ownerID, String prefix, String token, String modelFile, List<String> modules) {
         this.ownerID = ownerID;
+        this.prefix = prefix;
         this.token = token;
         this.modelFile = modelFile;
         this.modules = modules;
@@ -37,6 +39,14 @@ public class BotConfig implements Serializable {
 
     public void setOwnerID(String ownerID) {
         this.ownerID = ownerID;
+    }
+
+    public String getPrefix() {
+        return prefix;
+    }
+
+    public void setPrefix(String prefix) {
+        this.prefix = prefix;
     }
 
     public String getToken() {
@@ -62,7 +72,7 @@ public class BotConfig implements Serializable {
     public void setModules(List<String> modules) {
         this.modules = modules;
     }
-    
+
     public void putModule(String module) {
         this.modules.add(module);
     }

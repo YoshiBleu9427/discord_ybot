@@ -58,4 +58,9 @@ public class LogModule extends BotModule {
     public boolean isInterestedIn(MessageReceivedEvent t) {
         return true;
     }
+
+    @Override
+    public String getCommand() {
+        return "";
+    }
 }

@@ -21,7 +21,6 @@ import sx.blah.discord.util.RateLimitException;
  */
 public class RollModule extends BotModule {
     
-    public static String PREFIX = "ybot roll";
     public static int ROLL_DEFAULT = 20;
     public static int ROLL_MIN = 2;
     public static int ROLL_MAX = 999;
@@ -149,10 +148,10 @@ public class RollModule extends BotModule {
             } catch (NumberFormatException ex) {
                 reply = "Bad roll format! Try:\n"
                         + "```"
-                        + "ybot roll <1-999>\n"
-                        + "ybot roll <1-50>d<1-999>\n"
-                        + "ybot roll <1-50>d<1-999>(+/-<1-9999>)\n"
-                        + "ybot roll <1-50> <1-999>"
+                        + this.getFullCommand() + " <1-999>\n"
+                        + this.getFullCommand() + " <1-50>d<1-999>\n"
+                        + this.getFullCommand() + " <1-50>d<1-999>(+/-<1-9999>)\n"
+                        + this.getFullCommand() + " <1-50> <1-999>"
                         + "```";
             }
             
@@ -172,7 +171,7 @@ public class RollModule extends BotModule {
     }
     
     private ParseResult parseStringData(String msg) {
-        String withoutPrefix = msg.substring(PREFIX.length()).trim();
+        String withoutPrefix = msg.substring(this.getFullCommand().length()).trim();
         
         if (withoutPrefix.isEmpty()) {
             return new ParseResult(ROLL_DEFAULT);
@@ -224,7 +223,10 @@ public class RollModule extends BotModule {
 
     @Override
     public String help() {
-        return "**RollModule**: Rolls dice. `ybot roll 20`, `ybot roll 2 6` = 2d6, `ybot roll 2d6, `ybot roll 2d4-1, `ybot roll 1d6+3`. `ybot roll` will roll a single d20\n";
+        return "**RollModule**: Rolls dice. `"+this.getFullCommand()+" 20`, "
+                + "`"+this.getFullCommand()+" 2 6` = 2d6, `"+this.getFullCommand()+" 2d6, "
+                + "`"+this.getFullCommand()+" 2d4-1, `"+this.getFullCommand()+" 1d6+3`. "
+                + "`"+this.getFullCommand()+"` will roll a single d20\n";
     }
 
     @Override
@@ -233,12 +235,8 @@ public class RollModule extends BotModule {
     }
 
     @Override
-    public boolean isInterestedIn(MessageReceivedEvent t) {
-        if (!this.getUtil().isMessageForMe(t)) {
-            return false;
-        }
-        String lowerMsg = t.getMessage().getContent().toLowerCase();
-        return lowerMsg.startsWith(PREFIX);
+    public String getCommand() {
+        return "roll";
     }
 
 }

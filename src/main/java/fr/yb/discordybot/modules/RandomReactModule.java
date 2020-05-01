@@ -48,7 +48,7 @@ public class RandomReactModule extends BotModule {
 
     @Override
     public String help() {
-        return "**RandomReactModule**: Makes YBot add random reactions to random messages, usually in hilariously obnoxious ways\n";
+        return "**RandomReactModule**: Makes "+this.getUtil().getName()+" add random reactions to random messages, usually in hilariously obnoxious ways\n";
     }
 
     @Override
@@ -59,5 +59,10 @@ public class RandomReactModule extends BotModule {
     @Override
     public boolean isInterestedIn(MessageReceivedEvent t) {
         return true;
+    }
+
+    @Override
+    public String getCommand() {
+        return "";
     }
 }

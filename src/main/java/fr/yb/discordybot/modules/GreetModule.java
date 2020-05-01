@@ -7,7 +7,6 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Random;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Stream;
@@ -38,9 +37,6 @@ public class GreetModule extends BotModule {
         Map<String, UserModel> ums = this.getBot().getModel().getUsers();
         ums.forEach((String t, UserModel um) -> {
             int fren = um.getFren();
-            /*if (fren > 0) {
-                um.setFren(fren - 1);
-            }*/
         });
     }
     
@@ -96,7 +92,7 @@ public class GreetModule extends BotModule {
 
     @Override
     public String help() {
-        return "**GreetModule**: Says hi to people who mention ybot! Or fuck off if ybot doesn't know or like them.\n";
+        return "**GreetModule**: Says hi to people who mention "+this.getUtil().getName()+"! Or fuck off if "+this.getUtil().getName()+" doesn't know or like them.\n";
     }
 
     @Override
@@ -123,7 +119,7 @@ public class GreetModule extends BotModule {
                         t.getMessage().getContent().toLowerCase().contains("give fren")) {
                     String[] split = t.getMessage().getContent().toLowerCase().split(" ");
                     if (split.length < 4) {
-                        reply = "Did you mean `ybot gib fren <@person> <number>`?";
+                        reply = "Did you mean `"+this.getUtil().getName()+" gib fren <@person> <number>`?";
                     } else {
                         String last;
                         last = split[split.length - 1];
@@ -305,4 +301,8 @@ public class GreetModule extends BotModule {
         System.out.println(userName + " (" + u.getStringID() + ")  set to " + value);
     }
 
+    @Override
+    public String getCommand() {
+        return "";
+    }
 }

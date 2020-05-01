@@ -24,11 +24,6 @@ import sx.blah.discord.util.RateLimitException;
  */
 public class ProfileModule extends BotModule {
     
-    public static final String UPDATE_PROFILE_PIC = "ybot update profile pic";
-    public static final String STEAL_PROFILE_PIC = "ybot take profile pic from";
-    public static final String UPDATE_PROFILE_NICK = "ybot update profile nick";
-    public static final String UPDATE_PROFILE_PLAY = "ybot update profile play";
-    
     @Override
     public boolean handle(MessageReceivedEvent t) {
         try {
@@ -36,35 +31,16 @@ public class ProfileModule extends BotModule {
             msg = t.getMessage().getContent();
             msgLower = msg.toLowerCase();
             
-            if (ProfileModule.UPDATE_PROFILE_PIC.equals(msgLower)) {
-                Attachment att = t.getMessage().getAttachments().get(0);
-                String urlStr = att.getUrl();
-                String type = urlStr.substring(urlStr.lastIndexOf("."));
-                this.getClient().changeAvatar(Image.forUrl(type, urlStr));
-                reply = "Updated profile pic!";
-            }
-            else if (msgLower.startsWith(ProfileModule.STEAL_PROFILE_PIC)) {
-                item = msg.substring(ProfileModule.STEAL_PROFILE_PIC.length()).trim();
-                List<IUser> users = t.getGuild().getUsersByName(item);
-                if (users.isEmpty()) {
-                    reply = String.format("No user named `%s` found, no updaterino", item);
-                }
-                else if (users.size() > 1) {
-                    reply = String.format("Multiple users match `%s`, no updaterino", item);
-                }
-                else {
-                    IUser user = users.get(0);
-                    this.getClient().changeAvatar(Image.forUser(user));
-                    reply = String.format("Updated profile pic from `%s`!", item);
-                }
-            }
-            else if (msgLower.startsWith(ProfileModule.UPDATE_PROFILE_NICK)) {
-                item = msg.substring(ProfileModule.UPDATE_PROFILE_NICK.length()).trim();
+            String cmdNick = this.getFullCommand() + " nick";
+            String cmdPlay = this.getFullCommand() + " play";
+            
+            if (msgLower.startsWith(cmdNick)) {
+                item = msg.substring(cmdNick.length()).trim();
                 t.getGuild().setUserNickname(this.getClient().getOurUser(), item);
                 reply = String.format("Set nickname to `%s`!", item);
             }
-            else if (msgLower.startsWith(ProfileModule.UPDATE_PROFILE_PLAY)) {
-                item = msg.substring(ProfileModule.UPDATE_PROFILE_PLAY.length()).trim();
+            else if (msgLower.startsWith(cmdPlay)) {
+                item = msg.substring(cmdPlay.length()).trim();
                 this.getClient().changePlayingText(item);
                 reply = String.format("Set playing text to `%s`!", item);
             }
@@ -77,7 +53,7 @@ public class ProfileModule extends BotModule {
 
     @Override
     public String help() {
-        return "**ProfileModule**: Changes YBot's nick, avatar, etc. `ybot update profile (pic|nick|play)` or `ybot take profile pic from (user)`\n";
+        return "**ProfileModule**: Changes "+this.getUtil().getName()+"'s nickname or playing status. `"+this.getFullCommand()+" (nick|play)`\n";
     }
 
     @Override
@@ -87,25 +63,11 @@ public class ProfileModule extends BotModule {
 
     @Override
     public boolean isInterestedIn(MessageReceivedEvent t) {
-        if (!this.getBot().getUtil().isMessageFromOwner(t)) {
-            return false;
-        }
-        String msg = t.getMessage().getContent().toLowerCase();
-        if (msg.startsWith(ProfileModule.UPDATE_PROFILE_PLAY)) {
-            return true;
-        }
-        if (msg.startsWith(ProfileModule.UPDATE_PROFILE_NICK)) {
-            return true;
-        }
-        if (msg.startsWith(ProfileModule.STEAL_PROFILE_PIC)) {
-            return true;
-        }
-        if (msg.startsWith(ProfileModule.UPDATE_PROFILE_PIC)) {
-            if (!t.getMessage().getAttachments().isEmpty()) {
-                return true;
-            }
-        }
-        return false;
+        return this.getUtil().isMessageFromOwner(t) && super.isInterestedIn(t);
     }
 
+    @Override
+    public String getCommand() {
+        return "profile";
+    }
 }

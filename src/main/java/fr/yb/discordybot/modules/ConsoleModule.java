@@ -39,11 +39,14 @@ public class ConsoleModule extends BotModule {
 
     @Override
     public boolean isInterestedIn(MessageReceivedEvent t) {
-        if (this.getUtil().isMessageFromOwner(t)) {
-            if (t.getMessage().getContent().toLowerCase().startsWith("ybot module")) {
-                return true;
-            }
+        if (this.getUtil().isMessageFromOwner(t) && super.isInterestedIn(t)) {
+            return true;
         }
         return false;
+    }
+
+    @Override
+    public String getCommand() {
+        return "module";
     }
 }

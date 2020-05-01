@@ -46,7 +46,7 @@ public class PollEmojiModule extends BotModule {
     @Override
     public String help() {
         return "**PollEmojiModule**: If your message contains `[S]` or starts with `Poll:`"
-                + ", makes ybot react with poll emojis (:white_check_mark: and :x:) \n";
+                + ", makes "+this.getUtil().getName()+" react with poll emojis (:white_check_mark: and :x:) \n";
     }
 
     @Override
@@ -63,5 +63,10 @@ public class PollEmojiModule extends BotModule {
             return true;
         }
         return (t.getMessage().getContent().contains("[S]"));
+    }
+
+    @Override
+    public String getCommand() {
+        return "";
     }
 }

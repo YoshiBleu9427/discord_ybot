@@ -47,15 +47,12 @@ public class MinesweeperModule extends BotModule {
 
     @Override
     public String help() {
-        return "**MinesweeperModule**: Made by Beryllium#2215. Generates a minesweeper field. `ybot minesweeper <mines> <field_size>`\n";
+        return "**MinesweeperModule**: Made by Beryllium#2215. Generates a minesweeper field. `"+this.getFullCommand()+" <mines> <field_size>`\n";
     }
 
     @Override
-    public boolean isInterestedIn(MessageReceivedEvent t) {
-        if (!this.getUtil().isMessageForMe(t)) {
-            return false;
-        }
-        return t.getMessage().getContent().toLowerCase().startsWith("ybot minesweeper");
+    public String getCommand() {
+        return "minesweeper";
     }
 
     public String makeField(int mines, int sizemult) {

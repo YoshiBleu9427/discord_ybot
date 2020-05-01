@@ -68,7 +68,7 @@ public class RandomFactModule extends BotModule {
 
     @Override
     public String help() {
-        return "**RandomFactModule**: Makes YBot interesting. `YBot, say something nice!` or `ybot fact`\n";
+        return "**RandomFactModule**: Makes "+this.getUtil().getName()+" interesting. `"+this.getUtil().getName()+", say something nice!` or `"+this.getUtil().getName()+" fact`\n";
     }
 
     @Override
@@ -83,6 +83,11 @@ public class RandomFactModule extends BotModule {
         }
         String lowerMsg = t.getMessage().getContent().toLowerCase();
         return (lowerMsg.contains("say something") || lowerMsg.contains("fact"));
+    }
+
+    @Override
+    public String getCommand() {
+        return "";
     }
 
 }

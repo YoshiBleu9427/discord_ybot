@@ -22,36 +22,35 @@ import sx.blah.discord.util.RateLimitException;
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-
 /**
  *
  * @author Nicolas
  */
 public class LobbyModule extends BotModule {
-    
+
     public static final int MODIFIER_WORST = -10;
     public static final int MODIFIER_NORMAL = 4;
     public static final int MODIFIER_DECREASES_AFTER = 5;
     public static final TemporalAmount COOLDOWN_RESET_TIME = Duration.ofMinutes(5);
     public static final double CHANCE_EXTRA = 0.01;
     public static final int MODIFIER_EXTRA = 30;
-    
+
     public String dataToString(LobbyData datagram) {
         StringBuilder sb = new StringBuilder("```\n");
-        
+
         int nbServers = datagram.getNbServers();
-        
+
         for (LobbyServerData serverDatagram : datagram.getServerData()) {
-            
+
             int serverPort = serverDatagram.getServerPort();
             String serverIP = serverDatagram.getServerIP();
-            
+
             int slots = serverDatagram.getSlots();
             int players = serverDatagram.getPlayers();
             int bots = serverDatagram.getBots();
-            
+
             Map<String, String> infos = serverDatagram.getInfos();
-            
+
             sb.append(String.format("%1$-32s", infos.get("name")));
             sb.append(String.format("%1$-21s", serverIP + ":" + serverPort));
             sb.append(String.format("%1$-8s", players + "/" + slots));
@@ -69,7 +68,7 @@ public class LobbyModule extends BotModule {
         sb.append("```");
         return sb.toString();
     }
-    
+
     private int countPlayers(LobbyData datagram) {
         int nbPlayers = 0;
         for (LobbyServerData serverDatagram : datagram.getServerData()) {
@@ -83,7 +82,7 @@ public class LobbyModule extends BotModule {
         try {
             IMessage message = t.getMessage().getChannel().sendMessage("Requesting lobby...");
             String errMsg = "";
-            
+
             try {
                 errMsg = "Something went wrong contacting the lobby!";
                 Socket s = LobbyReader.sendLobbyRequest();
@@ -100,13 +99,13 @@ public class LobbyModule extends BotModule {
                 message.edit(errMsg + " " + ex.toString());
                 Logger.getLogger(LobbyModule.class.getName()).log(Level.WARNING, null, ex);
             }
-            
+
         } catch (MissingPermissionsException | RateLimitException | DiscordException ex) {
             Logger.getLogger(LobbyModule.class.getName()).log(Level.SEVERE, null, ex);
         }
         return false;
     }
-    
+
     @Override
     public int getPriority() {
         return 70;
@@ -114,13 +113,13 @@ public class LobbyModule extends BotModule {
 
     @Override
     public String help() {
-        return "**LobbyModule**: Reports on the gg2 lobby. `ybot lobby`\n";
+        return "**LobbyModule**: Reports on the gg2 lobby. `" + this.getFullCommand()
+                + "` or `" + this.getFullCommand() + " count`\n";
     }
 
     @Override
-    public boolean isInterestedIn(MessageReceivedEvent t) {
-        String lowerMsg = t.getMessage().getContent().toLowerCase();
-        return lowerMsg.startsWith("ybot lobby");
+    public String getCommand() {
+        return "lobby";
     }
 
 }

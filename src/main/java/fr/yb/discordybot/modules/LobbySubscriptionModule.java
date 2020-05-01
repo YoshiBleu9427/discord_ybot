@@ -31,7 +31,7 @@ public class LobbySubscriptionModule extends BotModule {
     private int previousPlayerCount = 0;
     private Timer timer;
     
-    public static final String COMMAND_ROOT = "gg2lobby sub";
+    public static final String COMMAND_ROOT = "sub";
     public static final String COMMAND_ADD = COMMAND_ROOT + " add";
     public static final String COMMAND_ADD_CHANNEL = COMMAND_ROOT + " addchan";
     public static final String COMMAND_REMOVE = COMMAND_ROOT + " remove";
@@ -227,7 +227,7 @@ public class LobbySubscriptionModule extends BotModule {
             LobbySubModel mod = this.getBot().getModel().getLobbySubscriptions().get(longID);
             
             if (mod == null) {
-                reply = "You did not subscribe to the gg2lobby. Use `ybot gg2lobby sub add <nbPlayers>` to get messages when there are at least <nbPlayers> online on gg2!";
+                reply = "You did not subscribe to the gg2lobby. Use `"+this.getFullCommand()+" add <nbPlayers>` to get messages when there are at least <nbPlayers> online on gg2!";
             } else {
                 reply = String.format(
                     "You will receive messages when there are at least %d players on gg2.",
@@ -271,11 +271,11 @@ public class LobbySubscriptionModule extends BotModule {
 
     @Override
     public String help() {
-        return "**LobbySubscriptionModule**: Makes ybot notify you when there are "
+        return "**LobbySubscriptionModule**: Makes "+this.getUtil().getName()+" notify you when there are "
                 + "at least X people playing Gang Garrison 2. Commands: `"
                 + COMMAND_ADD + "`, `" + COMMAND_LIST + "`, `" + COMMAND_REMOVE
-                + "`. Add an extra `chan` to the command to subscribe the channel "
-                + "instead of you, if you're the server admin (ie. `"
+                + "`. Add an extra `chan` to the command to notify a channel "
+                + "instead of getting a DM, if you're the server admin (ie. `"
                 + COMMAND_ADD_CHANNEL + "`).\n";
     }
 
@@ -285,10 +285,7 @@ public class LobbySubscriptionModule extends BotModule {
     }
 
     @Override
-    public boolean isInterestedIn(MessageReceivedEvent t) {
-        if (!this.getUtil().isMessageForMe(t)) {
-            return false;
-        }
-        return (t.getMessage().getContent().toLowerCase().contains(COMMAND_ROOT));
+    public String getCommand() {
+        return COMMAND_ROOT;
     }
 }

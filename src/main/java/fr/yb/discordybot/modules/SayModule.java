@@ -23,7 +23,7 @@ public class SayModule extends BotModule {
     @Override
     public boolean handle(MessageReceivedEvent t) {
         try {
-            String reply = t.getMessage().getContent().substring("ybot say ".length());
+            String reply = t.getMessage().getContent().substring((this.getFullCommand()+" ").length());
             t.getChannel().sendMessage(reply);
         } catch (MissingPermissionsException | RateLimitException | DiscordException ex) {
             Logger.getLogger(SayModule.class.getName()).log(Level.SEVERE, null, ex);
@@ -33,7 +33,7 @@ public class SayModule extends BotModule {
 
     @Override
     public String help() {
-        return "**SayModule**: Takes control of YBot's mouth and makes it say whatever you say. Except it only works with the owner <3\n";
+        return "**SayModule**: Allows the owner to make "+this.getUtil().getName()+" say something. `"+this.getFullCommand()+" something`\n";
     }
 
     @Override
@@ -43,14 +43,12 @@ public class SayModule extends BotModule {
 
     @Override
     public boolean isInterestedIn(MessageReceivedEvent t) {
-        if (!this.getBot().getUtil().isMessageFromOwner(t)) {
-            return false;
-        }
-        String lowerMsg = t.getMessage().getContent().toLowerCase();
-        if (lowerMsg.startsWith("ybot say ")) {
-            return true;
-        }
-        return false;
+        return this.getBot().getUtil().isMessageFromOwner(t) && super.isInterestedIn(t);
+    }
+
+    @Override
+    public String getCommand() {
+        return "say";
     }
 
 }

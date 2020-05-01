@@ -46,8 +46,22 @@ public abstract class BotModule {
     }
     
     public abstract int getPriority();
-    public abstract boolean isInterestedIn(MessageReceivedEvent t);
+    
+    /**
+     * The one word which, along with the bot prefix, should trigger the module.
+     * If you don't know what to put here or have multiple commands, return empty string.
+     * @return 
+     */
+    public abstract String getCommand();
     public abstract String help();
     public abstract boolean handle(MessageReceivedEvent t);
+    
+    public String getFullCommand() {
+        return this.bot.getConfig().getPrefix() + this.getCommand();
+    }
+    
+    public boolean isInterestedIn(MessageReceivedEvent t) {
+        return t.getMessage().getContent().toLowerCase().startsWith(this.getFullCommand());
+    }
 
 }

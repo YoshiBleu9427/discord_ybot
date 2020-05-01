@@ -42,4 +42,9 @@ public class MakeAvatarIntoEmojisModule extends BotModule {
         }
         return (t.getMessage().getContent().toLowerCase().contains("get all avatar links"));
     }
+
+    @Override
+    public String getCommand() {
+        return "get all avatar links";
+    }
 }

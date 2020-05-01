@@ -23,17 +23,15 @@ import sx.blah.discord.util.RateLimitException;
  */
 public class RoleModule extends BotModule {
     
-    public static final String START = "ybot role";
-    public static final String CREATE = START + " create ";
-    public static final String ADD = START + " add ";
-    public static final String REMOVE = START + " remove ";
-    
-    
-    
     @Override
     public boolean handle(MessageReceivedEvent t) {
         try {
             String item, msg, msgLower, reply = null;
+
+            String cmdCreate = this.getFullCommand() + " create ";
+            String cmdRemove = this.getFullCommand() + " remove ";
+            String cmdAdd = this.getFullCommand() + " add ";
+            
             msg = t.getMessage().getContent();
             msgLower = msg.toLowerCase();
                
@@ -43,9 +41,9 @@ public class RoleModule extends BotModule {
                 return false;
             }
             
-            if (msgLower.startsWith(RoleModule.CREATE)) {
+            if (msgLower.startsWith(cmdCreate)) {
                 if (t.getAuthor().getPermissionsForGuild(t.getGuild()).contains(Permissions.MANAGE_ROLES)) {
-                    item = msg.substring(RoleModule.CREATE.length());
+                    item = msg.substring(cmdCreate.length());
                     IRole newRole = t.getGuild().createRole();
                     newRole.changeName(item);
                     newRole.changeMentionable(true);
@@ -55,8 +53,8 @@ public class RoleModule extends BotModule {
                 }    
             }
             
-            else if (msgLower.startsWith(ADD)) {
-                item = msg.substring(ADD.length());
+            else if (msgLower.startsWith(cmdAdd)) {
+                item = msg.substring(cmdAdd.length());
                 List<IRole> roles = t.getGuild().getRolesByName(item);
                 switch (roles.size()) {
                     case 0:
@@ -76,8 +74,8 @@ public class RoleModule extends BotModule {
                 }
             }
             
-            else if (msgLower.startsWith(REMOVE)) {
-                item = msg.substring(REMOVE.length());
+            else if (msgLower.startsWith(cmdRemove)) {
+                item = msg.substring(cmdRemove.length());
                 List<IRole> roles = t.getGuild().getRolesByName(item);
                 switch (roles.size()) {
                     case 0:
@@ -99,7 +97,7 @@ public class RoleModule extends BotModule {
             }
             
             else {
-                reply = "Did you mean `ybot role (create|add|remove) <role name>`?";
+                reply = "Did you mean `"+this.getFullCommand()+" (create|add|remove) <role name>`?";
             }
             
             t.getChannel().sendMessage(reply);
@@ -111,7 +109,7 @@ public class RoleModule extends BotModule {
 
     @Override
     public String help() {
-        return "**RoleModule**: YBot creates roles and assigns them to you. `ybot role (create|add|remove) <role name>`\n";
+        return "**RoleModule**: "+this.getUtil().getName()+" creates roles and assigns them to you. `"+this.getFullCommand()+" (create|add|remove) <role name>`\n";
     }
 
     @Override
@@ -120,12 +118,8 @@ public class RoleModule extends BotModule {
     }
 
     @Override
-    public boolean isInterestedIn(MessageReceivedEvent t) {
-        String msg = t.getMessage().getContent().toLowerCase();
-        if (msg.startsWith(RoleModule.START)) {
-            return true;
-        }
-        return false;
+    public String getCommand() {
+        return "role";
     }
 
 }

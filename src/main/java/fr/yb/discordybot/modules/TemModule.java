@@ -39,7 +39,7 @@ public class TemModule extends BotModule {
 
     @Override
     public String help() {
-        return "**TemModule**: Makes YBot react with :temmie: to messages that contain tem\n";
+        return "**TemModule**: Makes "+this.getUtil().getName()+" react with :temmie: to messages that contain tem\n";
     }
 
     @Override
@@ -53,5 +53,10 @@ public class TemModule extends BotModule {
             return false;
         }
         return (t.getMessage().getContent().toLowerCase().contains("tem"));
+    }
+
+    @Override
+    public String getCommand() {
+        return "";
     }
 }

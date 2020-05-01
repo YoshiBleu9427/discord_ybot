@@ -95,4 +95,9 @@ public class EveryoneShunModule extends BotModule {
         return reply.replace("{name}", authorName);
     }
 
+    @Override
+    public String getCommand() {
+        return "";
+    }
+
 }

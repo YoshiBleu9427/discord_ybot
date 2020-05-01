@@ -60,11 +60,7 @@ public class Launcher {
         }
 
         // build bot
-        Bot bot = new Bot(
-                config.getToken(),
-                config.getOwnerID(),
-                config.getModelFile()
-        );
+        Bot bot = new Bot(config);
         try {
             bot.buildClient();
         } catch (DiscordException ex) {

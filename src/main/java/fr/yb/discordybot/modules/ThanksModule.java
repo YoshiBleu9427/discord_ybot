@@ -58,7 +58,7 @@ public class ThanksModule extends BotModule {
 
     @Override
     public String help() {
-        return "**ThanksModule**: Makes YBot acknowledge thank yous\n";
+        return "**ThanksModule**: Makes "+this.getUtil().getName()+" acknowledge thank yous\n";
     }
 
     @Override
@@ -73,6 +73,11 @@ public class ThanksModule extends BotModule {
         }
         String lowerMsg = t.getMessage().getContent().toLowerCase();
         return (lowerMsg.contains("cheers") || lowerMsg.contains("thanks") || lowerMsg.contains("thank you"));
+    }
+
+    @Override
+    public String getCommand() {
+        return "";
     }
 
 }

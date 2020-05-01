@@ -43,6 +43,7 @@ public class HugModule extends BotModule {
     public static final double CHANCE_EXTRA = 0.01;
     public static final int MODIFIER_EXTRA = 30;
     
+    // TODO update list to include bot name
     public static final List<String> TRIGGERS = Arrays.asList(
         "pat ybot",
         "cuddle ybot",
@@ -135,7 +136,7 @@ public class HugModule extends BotModule {
 
     @Override
     public String help() {
-        return "**HugModule**: Allows YBot to enjoy a !cuddle, !hug or !brushie.\n";
+        return "**HugModule**: Allows "+this.getUtil().getName()+" to enjoy a !cuddle, !hug or !brushie.\n";
     }
 
     @Override
@@ -152,4 +153,8 @@ public class HugModule extends BotModule {
         return lowerMsg.contains("i love you");
     }
 
+    @Override
+    public String getCommand() {
+        return "";
+    }
 }

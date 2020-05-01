@@ -28,10 +28,8 @@ import sx.blah.discord.util.RateLimitException;
  */
 public class Bot implements IListener<MessageReceivedEvent> {
     
-    private String token;
-    private String ownerID;
-    private String saveFileName;
-    
+    private BotConfig config;
+
     private IDiscordClient client;
     private ModuleLoader loader;
     
@@ -42,27 +40,17 @@ public class Bot implements IListener<MessageReceivedEvent> {
         return loader;
     }
 
-    public String getOwnerID() {
-        return ownerID;
+    public BotConfig getConfig() {
+        return this.config;
     }
 
-    public String getSaveFileName() {
-        return saveFileName;
+    public Bot(BotConfig config) {
+        this.config = config;
     }
 
-    public Bot(String token, String ownerID, String saveFileName) {
-        this.token = token;
-        this.ownerID = ownerID;
-        this.saveFileName = saveFileName;
-    }
-    
-    private String getToken() {
-        return token;
-    }
-    
     public void buildClient() throws DiscordException {
         ClientBuilder clientBuilder = new ClientBuilder(); // Creates the ClientBuilder instance
-        clientBuilder.withToken(this.getToken()); // Adds the login info to the builder 
+        clientBuilder.withToken(this.getConfig().getToken()); // Adds the login info to the builder 
         this.client = clientBuilder.build();
         this.util = new BotUtil(this);
         this.model = new BotModel();
@@ -77,7 +65,7 @@ public class Bot implements IListener<MessageReceivedEvent> {
     public void save() {
         Gson gson = new Gson();
         
-        try (BufferedWriter bw = new BufferedWriter(new FileWriter(this.getSaveFileName()))) {
+        try (BufferedWriter bw = new BufferedWriter(new FileWriter(this.getConfig().getModelFile()))) {
             gson.toJson(this.getModel(), bw);
         } catch (IOException ex) {
             Logger.getLogger(this.getClass().getName()).log(Level.SEVERE, null, ex);
@@ -88,7 +76,7 @@ public class Bot implements IListener<MessageReceivedEvent> {
         Gson gson = new Gson();
         
         try {
-            this.model = gson.fromJson(new FileReader(this.getSaveFileName()), this.model.getClass());
+            this.model = gson.fromJson(new FileReader(this.getConfig().getModelFile()), this.model.getClass());
         } catch (IOException ex) {
             Logger.getLogger(this.getClass().getName()).log(Level.SEVERE, null, ex);
         }

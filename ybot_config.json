@@ -1,5 +1,6 @@
 {
     "token": "",
+    "prefix": "ybot ",
     "ownerID": "169169139750010880",
     "modelFile": "BotModel.json",
     "modules": [
