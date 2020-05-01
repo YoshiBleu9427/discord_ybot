@@ -5,7 +5,6 @@
  */
 package fr.yb.discordybot.modules;
 
-import fr.yb.discordybot.Bot;
 import fr.yb.discordybot.BotModule;
 import fr.yb.discordybot.Launcher;
 import java.util.logging.Level;
@@ -40,7 +39,7 @@ public class ConsoleModule extends BotModule {
 
     @Override
     public boolean isInterestedIn(MessageReceivedEvent t) {
-        if (t.getMessage().getAuthor().getStringID().equals(Bot.OWNER_ID)) {
+        if (this.getUtil().isMessageFromOwner(t)) {
             if (t.getMessage().getContent().toLowerCase().startsWith("ybot module")) {
                 return true;
             }

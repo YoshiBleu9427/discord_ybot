@@ -1,6 +1,5 @@
 package fr.yb.discordybot.modules;
 
-import fr.yb.discordybot.Bot;
 import fr.yb.discordybot.BotModule;
 import sx.blah.discord.handle.impl.events.guild.channel.message.MessageReceivedEvent;
 
@@ -38,7 +37,7 @@ public class MakeAvatarIntoEmojisModule extends BotModule {
 
     @Override
     public boolean isInterestedIn(MessageReceivedEvent t) {
-        if (!t.getMessage().getAuthor().getStringID().equals(Bot.OWNER_ID)) {
+        if (!this.getUtil().isMessageFromOwner(t)) {
             return false;
         }
         return (t.getMessage().getContent().toLowerCase().contains("get all avatar links"));

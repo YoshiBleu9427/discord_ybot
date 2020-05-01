@@ -1,0 +1,28 @@
+{
+    "token": "",
+    "ownerID": "169169139750010880",
+    "modelFile": "BotModel.json",
+    "modules": [
+        "LoginModule",
+        "GreetModule",
+        "TemModule",
+        "PollEmojiModule",
+        "ConsoleModule",
+        "LogModule",
+        "RandomFactModule",
+        "ChooseModule",
+        "ThanksModule",
+        "MinesweeperModule",
+        "HugModule",
+        "EveryoneShunModule",
+        "QuestionModule",
+        "SayModule",
+        "ProfileModule",
+        "ReminderModule",
+        "LobbyModule",
+        "LobbySubscriptionModule",
+        "RoleModule",
+        "RollModule",
+        "HelpModule"
+    ]
+}

@@ -1,11 +1,17 @@
 package fr.yb.discordybot;
 
-import java.nio.file.Paths;
-import java.util.Arrays;
+import com.google.gson.Gson;
+import java.io.FileNotFoundException;
+import java.io.FileReader;
 import java.util.List;
 import java.util.Scanner;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import org.apache.commons.cli.CommandLine;
+import org.apache.commons.cli.CommandLineParser;
+import org.apache.commons.cli.DefaultParser;
+import org.apache.commons.cli.Options;
+import org.apache.commons.cli.ParseException;
 import sx.blah.discord.util.DiscordException;
 
 /*
@@ -13,35 +19,80 @@ import sx.blah.discord.util.DiscordException;
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-
 /**
  *
  * @author Nicolas
  */
 public class Launcher {
-    
-    
+
+    public static CommandLine parseOptions(String[] args) throws ParseException {
+        // create Options object
+        Options options = new Options();
+
+        options.addRequiredOption(
+                null,
+                "config-file",
+                true,
+                "path to file containing bot config"
+        );
+
+        CommandLineParser parser = new DefaultParser();
+        CommandLine cmd = parser.parse(options, args);
+        return cmd;
+    }
+
     public static void main(String[] args) {
-        Bot bot = null;
+        // parse args
+        CommandLine cmd = null;
         try {
-            bot = new Bot();
+            cmd = parseOptions(args);
+        } catch (ParseException ex) {
+            Logger.getLogger(Launcher.class.getName()).log(Level.SEVERE, null, ex);
+        }
+
+        // load config
+        Gson gson = new Gson();
+        BotConfig config = null;
+        try {
+            config = gson.fromJson(new FileReader(cmd.getOptionValue("config-file")), BotConfig.class);
+        } catch (FileNotFoundException ex) {
+            Logger.getLogger(Launcher.class.getName()).log(Level.SEVERE, null, ex);
+        }
+
+        // build bot
+        Bot bot = new Bot(
+                config.getToken(),
+                config.getOwnerID(),
+                config.getModelFile()
+        );
+        try {
+            bot.buildClient();
         } catch (DiscordException ex) {
             Logger.getLogger(Launcher.class.getName()).log(Level.SEVERE, null, ex);
         }
         boolean running = true;
+
+        // load modules
         try {
-            launchDefault(bot);
+            List<String> modules = config.getModules();
+            for (String module : modules) {
+                bot.loadModule(module);
+                bot.startModule(module);
+            }
         } catch (Exception ex) {
             Logger.getLogger(Launcher.class.getName()).log(Level.SEVERE, null, ex);
         }
+
+        // console mode
         Scanner sc = new Scanner(System.in);
-        while(running) {
+        while (running) {
             try {
                 System.out.println(" **** ");
                 String cmdLine = sc.nextLine();
                 String cmdName = cmdLine.split(" ")[0];
-                switch(cmdName.trim().toLowerCase()) {
-                    case "": break;
+                switch (cmdName.trim().toLowerCase()) {
+                    case "":
+                        break;
                     case "exit":
                         bot.disconnect();
                         running = false;
@@ -58,37 +109,7 @@ public class Launcher {
             }
         }
     }
-    
-    public static void launchDefault(Bot bot) throws Exception {
-        List<String> modules = Arrays.asList(
-                "LoginModule",
-                "GreetModule",
-                "TemModule",
-                "PollEmojiModule",
-                "ConsoleModule",
-                "LogModule",
-                "RandomFactModule",
-                "ChooseModule",
-                "ThanksModule",
-                "MinesweeperModule",
-                "HugModule",
-                "EveryoneShunModule",
-                "QuestionModule",
-                "SayModule",
-                "ProfileModule",
-                "ReminderModule",
-                "LobbyModule",
-                "LobbySubscriptionModule",
-                "RoleModule",
-                "RollModule",
-                "HelpModule"
-        );
-        for(String module : modules) {
-            bot.loadModule(module);
-            bot.startModule(module);
-        }
-    }
-    
+
     public static void module(String cmd, Bot bot) throws Exception {
         String[] args = cmd.split(" ", 5);
         if (args.length < 2) {
@@ -96,7 +117,7 @@ public class Launcher {
             return;
         }
         BotModule instance;
-        switch(args[1].trim().toLowerCase()) {
+        switch (args[1].trim().toLowerCase()) {
             case "list":
                 System.out.println("Started instances:");
                 bot.getLoader().getInstances().keySet().forEach((key) -> {

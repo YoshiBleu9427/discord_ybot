@@ -54,7 +54,7 @@ public class BotUtil {
     }
     
     public boolean isMessageFromOwner(MessageReceivedEvent t) {
-        return t.getAuthor().getStringID().equals(Bot.OWNER_ID);
+        return t.getAuthor().getStringID().equals(this.bot.getOwnerID());
     }
     
     public String getLocalUsername(IUser u, MessageReceivedEvent t) {

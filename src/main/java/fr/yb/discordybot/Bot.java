@@ -7,13 +7,10 @@ package fr.yb.discordybot;
 
 import com.google.gson.Gson;
 import fr.yb.discordybot.model.BotModel;
-import fr.yb.discordybot.modules.LobbySubscriptionModule;
 import java.io.BufferedWriter;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.logging.Level;
@@ -31,33 +28,41 @@ import sx.blah.discord.util.RateLimitException;
  */
 public class Bot implements IListener<MessageReceivedEvent> {
     
-    public static final String TOKEN_PATH = "token.txt";
-    public static final String OWNER_ID = "169169139750010880";
+    private String token;
+    private String ownerID;
+    private String saveFileName;
     
-    public static final String SAVE_FILE_NAME = "BotModel.json";
-    
-    private final IDiscordClient client;
-    private final ModuleLoader loader;
+    private IDiscordClient client;
+    private ModuleLoader loader;
     
     private BotModel model;
-    private final BotUtil util;
+    private BotUtil util;
 
     public ModuleLoader getLoader() {
         return loader;
     }
-    
-    private String getToken() throws IOException {
-        return Files.readAllLines(Paths.get(TOKEN_PATH)).get(0);
+
+    public String getOwnerID() {
+        return ownerID;
+    }
+
+    public String getSaveFileName() {
+        return saveFileName;
+    }
+
+    public Bot(String token, String ownerID, String saveFileName) {
+        this.token = token;
+        this.ownerID = ownerID;
+        this.saveFileName = saveFileName;
     }
     
-    public Bot() throws DiscordException {
-        // See "How to get the token" below
+    private String getToken() {
+        return token;
+    }
+    
+    public void buildClient() throws DiscordException {
         ClientBuilder clientBuilder = new ClientBuilder(); // Creates the ClientBuilder instance
-        try {
-            clientBuilder.withToken(this.getToken()); // Adds the login info to the builder 
-        } catch (IOException ex) {
-            throw new DiscordException("Couldn't read bot token.", ex);
-        }
+        clientBuilder.withToken(this.getToken()); // Adds the login info to the builder 
         this.client = clientBuilder.build();
         this.util = new BotUtil(this);
         this.model = new BotModel();
@@ -72,7 +77,7 @@ public class Bot implements IListener<MessageReceivedEvent> {
     public void save() {
         Gson gson = new Gson();
         
-        try (BufferedWriter bw = new BufferedWriter(new FileWriter(SAVE_FILE_NAME))) {
+        try (BufferedWriter bw = new BufferedWriter(new FileWriter(this.getSaveFileName()))) {
             gson.toJson(this.getModel(), bw);
         } catch (IOException ex) {
             Logger.getLogger(this.getClass().getName()).log(Level.SEVERE, null, ex);
@@ -83,7 +88,7 @@ public class Bot implements IListener<MessageReceivedEvent> {
         Gson gson = new Gson();
         
         try {
-            this.model = gson.fromJson(new FileReader(SAVE_FILE_NAME), this.model.getClass());
+            this.model = gson.fromJson(new FileReader(this.getSaveFileName()), this.model.getClass());
         } catch (IOException ex) {
             Logger.getLogger(this.getClass().getName()).log(Level.SEVERE, null, ex);
         }
