@@ -7,6 +7,9 @@ import fr.yb.discordybot.gg2.LobbyServerData;
 import fr.yb.discordybot.model.LobbySubModel;
 import java.io.IOException;
 import java.net.Socket;
+import java.time.Duration;
+import java.time.Instant;
+import java.util.Date;
 import java.util.Timer;
 import java.util.TimerTask;
 import java.util.logging.Level;
@@ -38,6 +41,8 @@ public class LobbySubscriptionModule extends BotModule {
     public static final String COMMAND_REMOVE_CHANNEL = COMMAND_ROOT + " removechan";
     public static final String COMMAND_LIST = COMMAND_ROOT + " show";
     public static final String COMMAND_LIST_CHANNEL = COMMAND_ROOT + " showchan";
+    public static final String COMMAND_COOLDOWN = COMMAND_ROOT + " cool";
+    public static final String COMMAND_COOLDOWN_CHANNEL = COMMAND_ROOT + " coolchan";
     
     public static final String COMMAND_STATUS = COMMAND_ROOT + " status";
     public static final String COMMAND_START = COMMAND_ROOT + " start";
@@ -103,8 +108,14 @@ public class LobbySubscriptionModule extends BotModule {
         
         final int prevNb = this.previousPlayerCount;
         final int currNb = nbPlayers;
+        Date now = new Date();
         this.getBot().getModel().getLobbySubscriptions().forEach((k,v) -> {
             try {
+                // cooldown
+                Instant cooldownOver = v.getLastPost().toInstant().plusSeconds(v.getCooldown().getSeconds());
+                if (now.toInstant().isBefore(cooldownOver)) {
+                    return;
+                }
                 // if previously was under threshold, but now is above, notify
                 if ((prevNb < v.getLevel()) && (currNb > v.getLevel())) {
                     long longID = Long.parseLong(v.getId());
@@ -113,6 +124,7 @@ public class LobbySubscriptionModule extends BotModule {
                         IChannel chan = this.getBot().getClient().getChannelByID(longID);
                         if (chan != null) {
                             chan.sendMessage(notification);
+                            v.setLastPost(now);
                         } else {
                             Logger.getLogger(LobbySubscriptionModule.class.getName()).log(Level.WARNING, "Unknown channel ID " + longID);
                         }
@@ -122,6 +134,7 @@ public class LobbySubscriptionModule extends BotModule {
                             IChannel chan = target.getOrCreatePMChannel();
                             if (chan != null) {
                                 chan.sendMessage(notification);
+                                v.setLastPost(now);
                             } else {
                                 Logger.getLogger(LobbySubscriptionModule.class.getName()).log(Level.WARNING, "Cannot get channel for user ID {0}", longID);
                             }
@@ -161,13 +174,68 @@ public class LobbySubscriptionModule extends BotModule {
                     this.getBot().getModel().putLobbySubscription(mod);
 
                     reply = String.format(
-                        "Subscribed this channel to gg2 lobby. I will send a message here in %s when there are at least %d people online on GG2!",
+                        "Subscribed this channel to gg2 lobby. I will send a message here in #%s when there are at least %d people online on GG2!",
                         t.getChannel().getName(),
                         value
                     );
 
                 } catch(NumberFormatException ex) {
-                    reply = "Wrong number format. Expected command: " + COMMAND_ADD_CHANNEL + " <nbPlayers>";
+                    reply = "Wrong number format. Expected command: " + this.getBot().getConfig().getPrefix() + COMMAND_ADD_CHANNEL + " <nbPlayers>";
+                }
+            }
+        } else if (cmd.contains(COMMAND_COOLDOWN_CHANNEL)) {
+            if (!t.getAuthor().getPermissionsForGuild(t.getGuild()).contains(Permissions.ADMINISTRATOR)) {
+                reply = "You need to be administrator to run this command!";
+            } else {
+                try {
+                    String secondPart = cmd.substring(cmd.indexOf(COMMAND_COOLDOWN_CHANNEL) + COMMAND_COOLDOWN_CHANNEL.length() + 1);
+                    String longID = String.valueOf(t.getChannel().getLongID());
+                    LobbySubModel mod = this.getBot().getModel().getLobbySubscriptions().get(longID);
+                    // make sure a subscription exists
+                    if (mod == null) {
+                        reply = "This channel does not have a gg2lobby subscription set. "
+                                + "Please run `"+ this.getBot().getConfig().getPrefix() + COMMAND_ADD_CHANNEL+"`"
+                                + " before updating cooldown settings.";
+                    } else {
+                        // all good, do the thing, start parsing
+                        boolean isHours = false;
+                        Character lastChar = secondPart.toLowerCase().charAt(secondPart.length()-1);
+                        if (Character.isAlphabetic(lastChar)) {
+                            switch (lastChar) {
+                                case 'h':
+                                    isHours = true;
+                                    break;
+                                case 'm':
+                                    break;
+                                default:
+                                    throw new NumberFormatException();
+                            }
+                            secondPart = secondPart.substring(0, secondPart.length() - 1);
+                        }
+                        int value = Integer.parseUnsignedInt(secondPart);
+
+                        // hours offset
+                        if (isHours) {
+                            mod.setCooldown(Duration.ofHours(value));
+                        } else {
+                            mod.setCooldown(Duration.ofMinutes(value));
+                        }
+                        
+                        // update
+                        this.getBot().getModel().putLobbySubscription(mod);
+
+                        reply = String.format(
+                            "Set notification cooldown for #%s to %d %s!",
+                            t.getChannel().getName(),
+                            value,
+                            (isHours ? "hours" : "minutes")
+                        );
+                    }
+
+                } catch(NumberFormatException ex) {
+                    reply = "Wrong number format. Expected command: " + this.getBot().getConfig().getPrefix() + COMMAND_COOLDOWN_CHANNEL + " <minutes> (or <hours>h)";
+                } catch(StringIndexOutOfBoundsException ex) {
+                    reply = "Wrong format. Expected command: " + this.getBot().getConfig().getPrefix() + COMMAND_COOLDOWN_CHANNEL + " <minutes> (or <hours>h)";
                 }
             }
         } else if (cmd.contains(COMMAND_REMOVE_CHANNEL)) {
@@ -187,9 +255,11 @@ public class LobbySubscriptionModule extends BotModule {
             LobbySubModel mod = this.getBot().getModel().getLobbySubscriptions().get(longID);
 
             reply = String.format(
-                "This channel (%s) will receive messages when there are at least %d players on gg2.",
+                "This channel (%s) will receive messages when there are at least %d players on gg2. Cooldown is %d hours %d minutes.",
                 t.getChannel().getName(),
-                mod.getLevel()
+                mod.getLevel(),
+                mod.getCooldown().getSeconds() / 3600,
+                (mod.getCooldown().getSeconds() / 60) % 60
             );
         }
         
@@ -217,6 +287,57 @@ public class LobbySubscriptionModule extends BotModule {
             } catch(NumberFormatException ex) {
                 reply = "Wrong number format. Expected command: " + COMMAND_ADD + " <nbPlayers>";
             }
+        } else if (cmd.contains(COMMAND_COOLDOWN)) {
+            try {
+                String secondPart = cmd.substring(cmd.indexOf(COMMAND_COOLDOWN) + COMMAND_COOLDOWN.length() + 1);
+                String longID = String.valueOf(t.getAuthor().getLongID());
+                LobbySubModel mod = this.getBot().getModel().getLobbySubscriptions().get(longID);
+                // make sure a subscription exists
+                if (mod == null) {
+                    reply = "You do not have a gg2lobby subscription set. "
+                            + "Please run `"+ this.getBot().getConfig().getPrefix() + COMMAND_ADD+"`"
+                            + " before updating your personal cooldown settings.";
+                } else {
+                    // all good, do the thing, start parsing
+                    boolean isHours = false;
+                    Character lastChar = secondPart.toLowerCase().charAt(secondPart.length()-1);
+                    if (Character.isAlphabetic(lastChar)) {
+                        switch (lastChar) {
+                            case 'h':
+                                isHours = true;
+                                break;
+                            case 'm':
+                                break;
+                            default:
+                                throw new NumberFormatException();
+                        }
+                        secondPart = secondPart.substring(0, secondPart.length() - 1);
+                    }
+                    int value = Integer.parseUnsignedInt(secondPart);
+
+                    // hours offset
+                    if (isHours) {
+                        mod.setCooldown(Duration.ofHours(value));
+                    } else {
+                        mod.setCooldown(Duration.ofMinutes(value));
+                    }
+
+                    // update
+                    this.getBot().getModel().putLobbySubscription(mod);
+
+                    reply = String.format(
+                        "Set notification cooldown for #%s to %d %s!",
+                        t.getChannel().getName(),
+                        value,
+                        (isHours ? "hours" : "minutes")
+                    );
+                }
+
+            } catch(NumberFormatException ex) {
+                reply = "Wrong number format. Expected command: " + this.getBot().getConfig().getPrefix() + COMMAND_COOLDOWN + " <minutes> (or <hours>h)";
+            } catch(StringIndexOutOfBoundsException ex) {
+                reply = "Wrong format. Expected command: " + this.getBot().getConfig().getPrefix() + COMMAND_COOLDOWN + " <minutes> (or <hours>h)";
+            }
         } else if (cmd.contains(COMMAND_REMOVE)) {
             String longID = String.valueOf(t.getAuthor().getLongID());
             this.getBot().getModel().getLobbySubscriptions().remove(longID);
@@ -230,8 +351,10 @@ public class LobbySubscriptionModule extends BotModule {
                 reply = "You did not subscribe to the gg2lobby. Use `"+this.getFullCommand()+" add <nbPlayers>` to get messages when there are at least <nbPlayers> online on gg2!";
             } else {
                 reply = String.format(
-                    "You will receive messages when there are at least %d players on gg2.",
-                    mod.getLevel()
+                    "You will receive messages when there are at least %d players on gg2. Cooldown is %d hours %d minutes.",
+                    mod.getLevel(),
+                    mod.getCooldown().getSeconds() / 3600,
+                    (mod.getCooldown().getSeconds() / 60) % 60
                 );
             }
         }
@@ -251,8 +374,8 @@ public class LobbySubscriptionModule extends BotModule {
                 reply = "Stopped timer";
             } else {
                 reply = "I didn't get that. I can understand one of the following: `"
-                    + COMMAND_ADD + ", " + COMMAND_LIST + ", " + COMMAND_REMOVE + ", "
-                    + COMMAND_ADD_CHANNEL + ", " + COMMAND_LIST_CHANNEL + ", " + COMMAND_REMOVE_CHANNEL + ", "
+                    + COMMAND_ADD + ", " + COMMAND_LIST + ", " + COMMAND_REMOVE + ", " + COMMAND_COOLDOWN + ", "
+                    + COMMAND_ADD_CHANNEL + ", " + COMMAND_LIST_CHANNEL + ", " + COMMAND_REMOVE_CHANNEL + ", " + COMMAND_COOLDOWN_CHANNEL + ", "
                     + COMMAND_STATUS + ", " + COMMAND_START + ", " + COMMAND_STOP
                     + "`.";
             }
@@ -261,8 +384,8 @@ public class LobbySubscriptionModule extends BotModule {
         // else uhhh
         else {
             reply = "I didn't get that. I can understand one of the following: `"
-                + COMMAND_ADD + ", " + COMMAND_LIST + ", " + COMMAND_REMOVE + ", "
-                + COMMAND_ADD_CHANNEL + ", " + COMMAND_LIST_CHANNEL + ", " + COMMAND_REMOVE_CHANNEL
+                    + COMMAND_ADD + ", " + COMMAND_LIST + ", " + COMMAND_REMOVE + ", " + COMMAND_COOLDOWN + ", "
+                    + COMMAND_ADD_CHANNEL + ", " + COMMAND_LIST_CHANNEL + ", " + COMMAND_REMOVE_CHANNEL + ", " + COMMAND_COOLDOWN_CHANNEL
                 + "`.";
         }
         t.getChannel().sendMessage(reply);
@@ -274,6 +397,7 @@ public class LobbySubscriptionModule extends BotModule {
         return "**LobbySubscriptionModule**: Makes "+this.getUtil().getName()+" notify you when there are "
                 + "at least X people playing Gang Garrison 2. Commands: `"
                 + COMMAND_ADD + "`, `" + COMMAND_LIST + "`, `" + COMMAND_REMOVE
+                + "`. Comes with a default cooldown of 60 minutes, change it with `" + COMMAND_COOLDOWN
                 + "`. Add an extra `chan` to the command to notify a channel "
                 + "instead of getting a DM, if you're the server admin (ie. `"
                 + COMMAND_ADD_CHANNEL + "`).\n";

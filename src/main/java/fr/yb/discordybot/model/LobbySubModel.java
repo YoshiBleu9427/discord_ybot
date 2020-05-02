@@ -6,6 +6,9 @@
 package fr.yb.discordybot.model;
 
 import java.io.Serializable;
+import java.time.Duration;
+import java.time.Instant;
+import java.util.Date;
 
 /**
  *
@@ -16,6 +19,24 @@ public class LobbySubModel implements Serializable {
     private boolean channel = false;
     private String id; // longID
     private int level;
+    private Date lastPost = Date.from(Instant.EPOCH);
+    private Duration cooldown = Duration.ofHours(1);
+
+    public Date getLastPost() {
+        return lastPost;
+    }
+
+    public void setLastPost(Date lastPost) {
+        this.lastPost = lastPost;
+    }
+
+    public Duration getCooldown() {
+        return cooldown;
+    }
+
+    public void setCooldown(Duration cooldown) {
+        this.cooldown = cooldown;
+    }
 
     public boolean isChannel() {
         return channel;
