@@ -1,0 +1,16 @@
+{
+    "token": "",
+    "prefix": "gg2",
+    "ownerID": "169169139750010880",
+    "modelFile": "GG2BotModel.json",
+    "modules": [
+        "LoginModule",
+        "PollEmojiModule",
+        "ConsoleModule",
+        "LogModule",
+        "ProfileModule",
+        "LobbyModule",
+        "LobbySubscriptionModule",
+        "HelpModule"
+    ]
+}
