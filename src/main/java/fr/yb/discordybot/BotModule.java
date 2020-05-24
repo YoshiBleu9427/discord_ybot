@@ -44,7 +44,10 @@ public abstract class BotModule {
     public BotUtil getUtil() {
         return this.getBot().getUtil();
     }
-    
+
+    /**
+     * Higher is executed first when dispatching events
+     */
     public abstract int getPriority();
     
     /**
