@@ -34,6 +34,9 @@ public class GitHubArchiveMapRepository implements MapRepository {
     public String getMapLocation(String mapName) throws IOException {
         Map<String, String> nameToFileLocationMapping = getNameToFileLocationMapping();
         String mapFilePath = nameToFileLocationMapping.get(mapName);
+        if (mapFilePath == null){
+            return null;
+        }
         return getContentUrl(mapFilePath);
     }
 
