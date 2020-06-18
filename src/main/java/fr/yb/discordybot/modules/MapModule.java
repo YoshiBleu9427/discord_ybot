@@ -46,9 +46,16 @@ public class MapModule extends BotModule {
                 response = mapRepository.getMapLocation(mapName);
             } catch (Exception e) {
                 Logger.getLogger(MapModule.class.getName()).log(Level.WARNING, null, e);
+                response = "Failed to get map. Error in console.";
             }
         } else {
-            response = "No `map_name` argument found";
+            try {
+                mapName = mapRepository.getRandomMapName();
+                response = mapRepository.getMapLocation(mapName);
+            } catch (Exception e) {
+                Logger.getLogger(MapModule.class.getName()).log(Level.WARNING, null, e);
+                response = "Failed to get map. Error in console.";
+            }
         }
         try {
             if (response == null) {
@@ -63,7 +70,7 @@ public class MapModule extends BotModule {
     }
 
     private String parseMapName(String inputCommand) {
-        String pattern = "^" + this.getFullCommand() + "(\\w+)";
+        String pattern = "^" + this.getFullCommand() + " (\\w+)";
         Pattern regex = Pattern.compile(pattern);
         Matcher matcher = regex.matcher(inputCommand.toLowerCase());
         if (!matcher.matches()) {

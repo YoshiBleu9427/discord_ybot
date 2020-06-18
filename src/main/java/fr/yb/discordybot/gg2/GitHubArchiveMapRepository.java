@@ -4,9 +4,12 @@ import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import java.io.IOException;
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.net.URL;
 import java.util.List;
 import java.util.Map;
+import java.util.Random;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.regex.Matcher;
@@ -14,6 +17,7 @@ import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 public class GitHubArchiveMapRepository implements MapRepository {
+
     private static Map<String, String> cachedNameToFileLocationMapping;
     private String repoOwner;
     private String repoName;
@@ -34,15 +38,41 @@ public class GitHubArchiveMapRepository implements MapRepository {
     public String getMapLocation(String mapName) throws IOException {
         Map<String, String> nameToFileLocationMapping = getNameToFileLocationMapping();
         String mapFilePath = nameToFileLocationMapping.get(mapName);
-        if (mapFilePath == null){
+        if (mapFilePath == null) {
             return null;
         }
         return getContentUrl(mapFilePath);
     }
 
+    @Override
+    public String getRandomMapName() throws Exception {
+        if (cachedNameToFileLocationMapping == null) {
+            generateMapArchive();
+        }
+        Random rand = new Random();
+        int nextInt = rand.nextInt(cachedNameToFileLocationMapping.size());
+        return cachedNameToFileLocationMapping.keySet().toArray()[nextInt].toString(); // lmao
+    }
+
     private String getContentUrl(String mapFilePath) {
-        return String.format("https://raw.githubusercontent.com/%s/%s/%s/%s",
-            repoOwner, repoName, branchName, mapFilePath);
+        try {
+            return new URI(
+                    "https",
+                    "raw.githubusercontent.com",
+                    String.format(
+                            "/%s/%s/%s/%s",
+                            repoOwner,
+                            repoName,
+                            branchName,
+                            mapFilePath
+                    ),
+                    null
+            ).normalize().toASCIIString();
+        } catch (URISyntaxException ex) {
+            Logger.getLogger(GitHubArchiveMapRepository.class.getName()).log(Level.SEVERE, null, ex);
+            return String.format("https://raw.githubusercontent.com/%s/%s/%s/%s",
+                    repoOwner, repoName, branchName, mapFilePath); 
+        }
     }
 
     private Map<String, String> getNameToFileLocationMapping() throws IOException {
@@ -59,44 +89,49 @@ public class GitHubArchiveMapRepository implements MapRepository {
         Tree tree = objectMapper.readValue(treeReadPoint, Tree.class);
         if (tree.truncated) {
             Logger.getLogger(GitHubArchiveMapRepository.class.getName()).log(Level.WARNING,
-                "Tree couldn't be fetched completely, the archive might be too big");
+                    "Tree couldn't be fetched completely, the archive might be too big");
         }
         cachedNameToFileLocationMapping = tree.tree.stream()
-            .filter(TreeEntry::isMap)
-            .collect(Collectors.toMap(TreeEntry::mapName, TreeEntry::getPath,
-                (entry1, entry2) -> {
-                    Logger.getLogger(GitHubArchiveMapRepository.class.getName()).log(Level.INFO,
-                        String.format("Map name duplicate: %s - %s", entry1, entry2));
-                    return entry1;
-                })
-            );
+                .filter(TreeEntry::isMap)
+                .collect(Collectors.toMap(TreeEntry::mapName, TreeEntry::getPath,
+                        (entry1, entry2) -> {
+                            Logger.getLogger(GitHubArchiveMapRepository.class.getName()).log(Level.INFO,
+                                    String.format("Map name duplicate: %s - %s", entry1, entry2));
+                            return entry1;
+                        })
+                );
     }
 
     private String getRepoTreeReadPoint(ObjectMapper objectMapper) throws IOException {
         URL readPoint = new URL(String.format(
-            "https://api.github.com/repos/%s/%s/branches/%s", repoOwner, repoName, branchName));
+                "https://api.github.com/repos/%s/%s/branches/%s", repoOwner, repoName, branchName));
         Branch response = objectMapper.readValue(readPoint, Branch.class);
         return response.commit.commit.tree.url;
     }
 
     static class Branch {
+
         //StATiCAlLY TypeD LaNgUaGE
         public HeadCommit commit;
     }
 
     static class HeadCommit {
+
         public Commit commit;
     }
 
     static class Commit {
+
         public CommitTree tree;
     }
 
     static class CommitTree {
+
         public String url;
     }
 
     static class TreeEntry {
+
         // this assumes that a non directory file ending with `.png` is a map
         static final Pattern mapNameFinder = Pattern.compile(".*/(\\w+)\\.png");
         public String path;
@@ -122,6 +157,7 @@ public class GitHubArchiveMapRepository implements MapRepository {
     }
 
     private static class Tree {
+
         public boolean truncated;
         public List<TreeEntry> tree;
     }
