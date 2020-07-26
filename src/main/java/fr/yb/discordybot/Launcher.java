@@ -12,6 +12,7 @@ import org.apache.commons.cli.CommandLineParser;
 import org.apache.commons.cli.DefaultParser;
 import org.apache.commons.cli.Options;
 import org.apache.commons.cli.ParseException;
+import sx.blah.discord.Discord4J;
 import sx.blah.discord.util.DiscordException;
 
 /*
@@ -41,7 +42,7 @@ public class Launcher {
         return cmd;
     }
 
-    public static void main(String[] args) {
+    public static void main(String[] args) {        
         // parse args
         CommandLine cmd = null;
         try {
@@ -58,6 +59,9 @@ public class Launcher {
         } catch (FileNotFoundException ex) {
             Logger.getLogger(Launcher.class.getName()).log(Level.SEVERE, null, ex);
         }
+        
+        // set discord api url
+        Discord4J.setBaseDiscordUrl("https://discord.com/");
 
         // build bot
         Bot bot = new Bot(config);
