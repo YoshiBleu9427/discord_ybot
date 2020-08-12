@@ -1,6 +1,8 @@
 package fr.yb.discordybot.modules;
 
 import fr.yb.discordybot.BotReactableModule;
+import java.time.Duration;
+import java.time.Instant;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -32,6 +34,7 @@ public class QueueModule extends BotReactableModule {
     public static final ReactionEmoji EMOJI = ReactionEmoji.of("\u2705");
     public static final int MIN_QUEUE_SIZE = 2;
     public static final int MAX_QUEUE_SIZE = 16;
+    public static final Duration MAX_QUEUE_DURATION = Duration.ofHours(12);
 
     private final Map<IMessage, Queue> queues = new HashMap<>();
 
@@ -40,17 +43,40 @@ public class QueueModule extends BotReactableModule {
         public IMessage msg;
         public int size;
         public String name;
+        private Instant startDate;
 
         public Queue(IMessage msg, int size, String name) {
             this.msg = msg;
             this.size = size;
             this.name = name;
+            this.startDate = Instant.now();
+        }
+
+        public Instant getStartDate() {
+            return this.startDate;
         }
     }
 
-    protected Queue createQueue(IMessage msg, int size, String name) throws AlreadyMarkedException {
-        if (this.queues.containsKey(msg)) {
-            throw new BotReactableModule.AlreadyMarkedException();
+    protected Queue createQueue(IMessage msg, int size, String name) throws AlreadyMarkedException {        
+        if (this.getMarkedMessages().containsKey(msg.getChannel())) {
+            IMessage markedMessageInChannel = this.getMarkedMessages().get(msg.getChannel());
+            Queue existingQueue = this.queues.get(markedMessageInChannel);
+            Instant now = Instant.now();
+            if (Duration.between(existingQueue.startDate, now).minus(MAX_QUEUE_DURATION).isNegative()) {
+                // if started more than MAX_QUEUE_DURATION ago,
+                throw new BotReactableModule.AlreadyMarkedException();
+            } else {
+                try {
+                    // sleeps to prevent rate limiting
+                    this.dropQueue(existingQueue);
+                    Thread.sleep(200);
+                    existingQueue.msg.edit("Your queue `" + existingQueue.name + "` has expired and was dropped.");
+                    existingQueue.msg.removeReaction(this.getClient().getOurUser(), EMOJI);
+                    Thread.sleep(400);
+                } catch (InterruptedException ex) {
+                    Logger.getLogger(QueueModule.class.getName()).log(Level.SEVERE, null, ex);
+                }
+            }
         }
         Queue queue = new Queue(msg, size, name);
         this.queues.put(queue.msg, queue);
@@ -83,7 +109,6 @@ public class QueueModule extends BotReactableModule {
         try {
             String msgtext = t.getMessage().getContent().trim();
             String cmdArgs = msgtext.substring(this.getFullCommand().length()).trim();
-            int nbSpacesInCmd = this.getFullCommand().length() - this.getFullCommand().replace(" ", "").length();
             String[] msgsplit = cmdArgs.split(" ", 2);
             String queueName;
             int queueSize;
@@ -114,7 +139,7 @@ public class QueueModule extends BotReactableModule {
                 this.updateMessageBody(queue);
             } catch (AlreadyMarkedException ex) {
                 Logger.getLogger(QueueModule.class.getName()).log(Level.SEVERE, null, ex);
-                posted.edit("Starting queue failed because there already is a queue in this channel.");
+                posted.edit("Starting queue failed because there already is a queue in this channel, started less than 12 hours ago.");
             }
         } catch (MissingPermissionsException | RateLimitException | DiscordException ex) {
             Logger.getLogger(QueueModule.class.getName()).log(Level.SEVERE, null, ex);
@@ -172,8 +197,8 @@ public class QueueModule extends BotReactableModule {
         List<IUser> users = evt.getMessage().getReactionByEmoji(EMOJI).getUsers();
         int cnt = users.size();
         if ((cnt - 1) >= q.size) {
-            this.onQueueEnd(q);
             this.dropQueue(q);
+            this.onQueueEnd(q);
         }
     }
 
@@ -185,8 +210,8 @@ public class QueueModule extends BotReactableModule {
         if ((cnt - 1) > 0) {
             this.updateMessageBody(q);
         } else {
-            this.onQueueEmpty(q);
             this.dropQueue(q);
+            this.onQueueEmpty(q);
         }
     }
 
