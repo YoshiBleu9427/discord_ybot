@@ -22,6 +22,15 @@ public class LobbySubModel implements Serializable {
     private Date lastPost = Date.from(Instant.EPOCH);
     private Duration cooldown = Duration.ofHours(1);
 
+    public LobbySubModel() {
+    }
+
+    public LobbySubModel(String longID, int level, boolean channel) {
+        this.channel = channel;
+        this.level = level;
+        this.id = longID;
+    }
+
     public Date getLastPost() {
         return lastPost;
     }
