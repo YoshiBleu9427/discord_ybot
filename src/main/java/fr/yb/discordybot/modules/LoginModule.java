@@ -9,6 +9,8 @@ import fr.yb.discordybot.BotModule;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import sx.blah.discord.handle.impl.events.guild.channel.message.MessageReceivedEvent;
+import sx.blah.discord.handle.obj.ActivityType;
+import sx.blah.discord.handle.obj.StatusType;
 import sx.blah.discord.util.DiscordException;
 import sx.blah.discord.util.MissingPermissionsException;
 import sx.blah.discord.util.RateLimitException;
@@ -24,6 +26,7 @@ public class LoginModule extends BotModule {
         super.start();
         try {
             this.getBot().connect();
+            this.getClient().changePresence(StatusType.ONLINE, ActivityType.WATCHING, "you | " + this.getBot().getConfig().getPrefix() + "help");
         } catch (DiscordException | RateLimitException | InterruptedException ex) {
             Logger.getLogger(LoginModule.class.getName()).log(Level.SEVERE, null, ex);
         }
