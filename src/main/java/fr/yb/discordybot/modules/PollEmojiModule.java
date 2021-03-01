@@ -4,6 +4,7 @@ import fr.yb.discordybot.BotModule;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import sx.blah.discord.handle.impl.events.guild.channel.message.MessageReceivedEvent;
+import sx.blah.discord.handle.impl.obj.ReactionEmoji;
 import sx.blah.discord.util.DiscordException;
 import sx.blah.discord.util.MissingPermissionsException;
 import sx.blah.discord.util.RateLimitException;
@@ -20,15 +21,16 @@ import sx.blah.discord.util.RateLimitException;
 public class PollEmojiModule extends BotModule {
 
     public static final String[] EMOJI_NAMES = {
-        "white_check_mark",
-        "x"
+        "✅",
+        "❌"
     };
 
     @Override
     public boolean handle(MessageReceivedEvent t) {
         try {
             for (String emojiName : EMOJI_NAMES) {
-                t.getMessage().addReaction(":" + emojiName + ":"); // TODO find how to get a list of IEmoji for default emojis
+                ReactionEmoji result = ReactionEmoji.of(emojiName);
+                t.getMessage().addReaction(result); // TODO find how to get a list of IEmoji for default emojis
                 // wait 500ms to prevent getting rate limited (delay time could be tuned)
                 try {
                     Thread.sleep(500);

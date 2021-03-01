@@ -1,14 +1,12 @@
 package fr.yb.discordybot.modules;
 
 import fr.yb.discordybot.BotModule;
-import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import sx.blah.discord.handle.impl.events.guild.channel.message.MessageReceivedEvent;
-import sx.blah.discord.handle.obj.IMessage.Attachment;
-import sx.blah.discord.handle.obj.IUser;
+import sx.blah.discord.handle.obj.ActivityType;
+import sx.blah.discord.handle.obj.StatusType;
 import sx.blah.discord.util.DiscordException;
-import sx.blah.discord.util.Image;
 import sx.blah.discord.util.MissingPermissionsException;
 import sx.blah.discord.util.RateLimitException;
 
@@ -41,7 +39,7 @@ public class ProfileModule extends BotModule {
             }
             else if (msgLower.startsWith(cmdPlay)) {
                 item = msg.substring(cmdPlay.length()).trim();
-                this.getClient().changePlayingText(item);
+                this.getClient().changePresence(StatusType.ONLINE, ActivityType.PLAYING, item);
                 reply = String.format("Set playing text to `%s`!", item);
             }
             t.getChannel().sendMessage(reply);

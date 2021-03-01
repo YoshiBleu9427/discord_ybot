@@ -4,7 +4,7 @@ import fr.yb.discordybot.BotModule;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import sx.blah.discord.handle.impl.events.guild.channel.message.MessageReceivedEvent;
-import sx.blah.discord.handle.obj.IEmoji;
+import sx.blah.discord.handle.impl.obj.ReactionEmoji;
 import sx.blah.discord.util.DiscordException;
 import sx.blah.discord.util.MissingPermissionsException;
 import sx.blah.discord.util.RateLimitException;
@@ -21,15 +21,12 @@ import sx.blah.discord.util.RateLimitException;
  */
 public class TemModule extends BotModule {
     
-    public static final String EMOJI_NAME = "temmie";
+    public static final ReactionEmoji EMOJI = ReactionEmoji.of("temmie", 402564863936692250L);
 
     @Override
     public boolean handle(MessageReceivedEvent t) {
         try {
-            IEmoji emoji = t.getGuild().getEmojiByName(EMOJI_NAME);
-            if (emoji != null) {
-                t.getMessage().addReaction(emoji);
-            }
+            t.getMessage().addReaction(EMOJI);
         } catch (MissingPermissionsException | RateLimitException | DiscordException ex) {
             Logger.getLogger(TemModule.class.getName()).log(Level.SEVERE, null, ex);
         }
@@ -39,7 +36,7 @@ public class TemModule extends BotModule {
 
     @Override
     public String help() {
-        return "**TemModule**: Makes "+this.getUtil().getName()+" react with :temmie: to messages that contain tem\n";
+        return "**TemModule**: Makes "+this.getUtil().getName()+" react with temmie emoji to messages that contain tem\n";
     }
 
     @Override
