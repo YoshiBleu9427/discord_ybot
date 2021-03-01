@@ -17,10 +17,17 @@ import sx.blah.discord.handle.impl.events.guild.channel.message.MessageReceivedE
  */
 public class ConsoleModule extends BotModule {
 
+    @Override
     public boolean handle(MessageReceivedEvent t) {
         try {
             String cmd = t.getMessage().getContent().substring(5);
-            Launcher.module(cmd, this.getBot());
+            String res = Launcher.module(cmd, this.getBot());
+            if (res != null) {
+                if (!res.isEmpty()) {
+                    t.getChannel().sendMessage(res);
+                    return false;
+                }
+            }
         } catch (Exception ex) {
             Logger.getLogger(ConsoleModule.class.getName()).log(Level.SEVERE, null, ex);
         }

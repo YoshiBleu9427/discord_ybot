@@ -98,7 +98,7 @@ public class Launcher {
                         running = false;
                         break;
                     case "module":
-                        module(cmdLine, bot);
+                        System.out.println(module(cmdLine, bot));
                         break;
                     default:
                         System.out.println("Commands: exit, module");
@@ -110,24 +110,23 @@ public class Launcher {
         }
     }
 
-    public static void module(String cmd, Bot bot) throws Exception {
+    public static String module(String cmd, Bot bot) throws Exception {
         String[] args = cmd.split(" ", 5);
         if (args.length < 2) {
-            System.out.println("Usage: module {list|load|start|exec|stop} [moduleName] [args]");
-            return;
+            return "Usage: module {list|load|start|exec|stop} [moduleName] [args]";
         }
         BotModule instance;
         switch (args[1].trim().toLowerCase()) {
             case "list":
+                final StringBuilder sb = new StringBuilder("Started instances:");
                 System.out.println("Started instances:");
                 bot.getLoader().getInstances().keySet().forEach((key) -> {
-                    System.out.println(" - " + key);
+                    sb.append("\n - ").append(key);
                 });
-                break;
+                return sb.toString();
             case "load":
                 if (args.length < 3) {
-                    System.out.println("Usage: module load {moduleName} [moduleRootPath]");
-                    return;
+                    return "Usage: module load {moduleName} [moduleRootPath]";
                 }
                 // force unloading if already loaded
                 if (bot.getLoader().getInstances().containsKey(args[2])) {
@@ -138,11 +137,10 @@ public class Launcher {
                 } else {
                     bot.getLoader().load(args[2], args[3]);
                 }
-                break;
+                return "Done loading " + args[2];
             case "reload":
                 if (args.length < 3) {
-                    System.out.println("Usage: module reload {moduleName} [moduleRootPath]");
-                    return;
+                    return "Usage: module reload {moduleName} [moduleRootPath]";
                 }
                 bot.getLoader().stop(args[2]);
                 bot.getLoader().unload(args[2]);
@@ -151,11 +149,10 @@ public class Launcher {
                 } else {
                     bot.getLoader().load(args[2], args[3]);
                 }
-                break;
+                return "Done reloading " + args[2];
             case "restart":
                 if (args.length < 3) {
-                    System.out.println("Usage: module restart {moduleName} [moduleRootPath]");
-                    return;
+                    return "Usage: module restart {moduleName} [moduleRootPath]";
                 }
                 bot.getLoader().stop(args[2]);
                 bot.getLoader().unload(args[2]);
@@ -165,47 +162,50 @@ public class Launcher {
                     bot.getLoader().load(args[2], args[3]);
                 }
                 bot.getLoader().start(args[2]);
-                break;
+                return "Restarted " + args[2];
             case "start":
                 if (args.length < 3) {
-                    System.out.println("Usage: module start {moduleName}");
-                    return;
+                    return "Usage: module start {moduleName}";
                 }
                 bot.getLoader().start(args[2]);
-                break;
+                return "Started " + args[2];
             case "exec":
                 if (args.length < 3) {
-                    System.out.println("usage: module exec {moduleName} {methodName} [args]");
-                    return;
+                    return "usage: module exec {moduleName} {methodName} [args]";
                 }
                 instance = bot.getLoader().getInstances().get(args[2]);
                 if (args.length == 3) {
                     instance.getClass().getMethod(args[3]).invoke(instance);
                 } else {
+                    Object result;
                     try {
-                        instance.getClass().getMethod(args[3], String.class).invoke(instance, args[4]);
+                        result = instance.getClass().getMethod(args[3], String.class).invoke(instance, args[4]);
                     } catch (NoSuchMethodException ex) {
                         // whoops, maybe this one has no arguments?
-                        instance.getClass().getMethod(args[3]).invoke(instance);
+                        result = instance.getClass().getMethod(args[3]).invoke(instance);
+                    }
+                    if (result == null) {
+                        return "<success>";
+                    } else {
+                        return result.toString();
                     }
                 }
                 break;
             case "stop":
                 if (args.length < 3) {
-                    System.out.println("Usage: module stop {moduleName}");
-                    return;
+                    return "Usage: module stop {moduleName}";
                 }
                 bot.getLoader().stop(args[2]);
-                break;
+                return "Stopped " + args[2];
             case "unload":
                 if (args.length < 3) {
-                    System.out.println("Usage: module unload {moduleName}");
-                    return;
+                    return "Usage: module unload {moduleName}";
                 }
                 bot.getLoader().unload(args[2]);
-                break;
+                return "Done unloading " + args[2];
             default:
-                System.out.println("Usage: module {list|load|start|exec|stop} [moduleName] [args]");
+                return "Usage: module {list|load|start|exec|stop} [moduleName] [args]";
         }
+        return "Usage: module {list|load|start|exec|stop} [moduleName] [args]";
     }
 }
