@@ -44,5 +44,5 @@ jobs:
         VALUE: ${{ secrets.BOT_TOKEN }}
         FILE: deploy_config.json
     - name: Deploy
-      run: java -Dfile.encoding=UTF-8 -jar target/DiscordYBot-1.0-SNAPSHOT.jar --config-file deploy_config.json
+      run: java -Dfile.encoding=UTF-8 -jar DiscordYBot-1.0-SNAPSHOT.jar --config-file deploy_config.json
 
