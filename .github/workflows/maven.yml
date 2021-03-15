@@ -11,9 +11,7 @@ on:
 
 jobs:
   build:
-
     runs-on: ubuntu-latest
-
     steps:
     - uses: actions/checkout@v2
     - name: Set up JDK 1.8
@@ -22,9 +20,23 @@ jobs:
         java-version: 1.8
     - name: Build with Maven
       run: mvn -B package --file pom.xml
-    - name: Prepare deploy conf
+    - name: Make artifact
+      uses: actions/upload-artifact@v2
+      with:
+        name: build-${{ github.sha }}
+        path: target/DiscordYBot-1.0-SNAPSHOT.jar
+      
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v2
+    - name: Retrieve artifact
+      uses: actions/download-artifact@v2
+      with:
+        name: build-${{ github.sha }}
+    - name: Copy conf
       run: cp ybot_config.json deploy_config.json
-    - name: Prepare deploy
+    - name: Prepare conf
       uses: deef0000dragon1/json-edit-action/@v1
       env:
         KEY: token
