@@ -8,8 +8,14 @@ package fr.yb.discordybot;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Random;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+import sx.blah.discord.api.internal.json.objects.EmbedObject;
 import sx.blah.discord.handle.impl.events.guild.channel.message.MessageReceivedEvent;
+import sx.blah.discord.handle.obj.IChannel;
+import sx.blah.discord.handle.obj.IMessage;
 import sx.blah.discord.handle.obj.IUser;
+import sx.blah.discord.util.RateLimitException;
 
 /**
  *
@@ -99,4 +105,65 @@ public class BotUtil {
         }
         return null;
     }
+    
+    public IMessage sendWithRateLimit(String msg, IChannel chan) {
+        while (true) {
+            try {
+                return chan.sendMessage(msg);
+            } catch (RateLimitException ex) {
+                try {
+                    Thread.sleep(ex.getRetryDelay());
+                } catch (InterruptedException ex1) {
+                    Logger.getLogger(BotUtil.class.getName()).log(Level.SEVERE, null, ex1);
+                    return null;
+                }
+            }
+        }
+    }
+    
+    public IMessage sendWithRateLimit(EmbedObject msg, IChannel chan) {
+        while (true) {
+            try {
+                return chan.sendMessage(msg);
+            } catch (RateLimitException ex) {
+                try {
+                    Thread.sleep(ex.getRetryDelay());
+                } catch (InterruptedException ex1) {
+                    Logger.getLogger(BotUtil.class.getName()).log(Level.SEVERE, null, ex1);
+                    return null;
+                }
+            }
+        }
+    }
+    
+    public IMessage editWithRateLimit(String msg, IMessage message) {
+        while (true) {
+            try {
+                return message.edit(msg);
+            } catch (RateLimitException ex) {
+                try {
+                    Thread.sleep(ex.getRetryDelay());
+                } catch (InterruptedException ex1) {
+                    Logger.getLogger(BotUtil.class.getName()).log(Level.SEVERE, null, ex1);
+                    return null;
+                }
+            }
+        }
+    }
+    
+    public IMessage editWithRateLimit(EmbedObject msg, IMessage message) {
+        while (true) {
+            try {
+                return message.edit(msg);
+            } catch (RateLimitException ex) {
+                try {
+                    Thread.sleep(ex.getRetryDelay());
+                } catch (InterruptedException ex1) {
+                    Logger.getLogger(BotUtil.class.getName()).log(Level.SEVERE, null, ex1);
+                    return null;
+                }
+            }
+        }
+    }
 }
+

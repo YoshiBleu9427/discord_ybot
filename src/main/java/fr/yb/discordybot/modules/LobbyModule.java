@@ -4,6 +4,7 @@ import fr.yb.discordybot.BotModule;
 import fr.yb.discordybot.gg2.LobbyData;
 import fr.yb.discordybot.gg2.LobbyReader;
 import fr.yb.discordybot.gg2.LobbyServerData;
+import java.awt.Color;
 import java.io.IOException;
 import java.net.Socket;
 import java.time.Duration;
@@ -11,6 +12,7 @@ import java.time.temporal.TemporalAmount;
 import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import sx.blah.discord.api.internal.json.objects.EmbedObject;
 import sx.blah.discord.handle.impl.events.guild.channel.message.MessageReceivedEvent;
 import sx.blah.discord.handle.obj.IMessage;
 import sx.blah.discord.util.DiscordException;
@@ -34,8 +36,57 @@ public class LobbyModule extends BotModule {
     public static final TemporalAmount COOLDOWN_RESET_TIME = Duration.ofMinutes(5);
     public static final double CHANCE_EXTRA = 0.01;
     public static final int MODIFIER_EXTRA = 30;
+    
+    
+    public static EmbedObject dataToEmbed(LobbyData datagram) {
+        EmbedObject eo = new EmbedObject();
+        int nbPlayers = countPlayers(datagram);
+        eo.title = "Gang Garrison 2 Lobby Status";
+        eo.description = String.format("There are **%d** players online.", nbPlayers);
+        eo.url = "https://www.ganggarrison.com/lobby/status";
+        eo.color = Color.decode("#A55420").getRGB() & 0xFFFFFF;
+        eo.thumbnail = new EmbedObject.ThumbnailObject();
+        eo.thumbnail.url = "https://cdn.discordapp.com/icons/699590084218847282/be805b3d3557a9cc2bf98ae19c5ae27c.webp?size=256";
+        eo.fields = dataToEmbedFields(datagram);
+        return eo;
+    }
+    
+    public static EmbedObject.EmbedFieldObject[] dataToEmbedFields(LobbyData datagram) {
+        // init embed fields
+        EmbedObject.EmbedFieldObject[] fieldObjects = new EmbedObject.EmbedFieldObject[datagram.getServerData().size()];
+        for (int i = 0; i < datagram.getServerData().size(); i++) {
+            LobbyServerData data = datagram.getServerData().get(i);
 
-    public String dataToString(LobbyData datagram) {
+            int serverPort = data.getServerPort();
+            String serverIP = data.getServerIP();
+            int slots = data.getSlots();
+            int players = data.getPlayers();
+            Map<String, String> infos = data.getInfos();
+
+            StringBuilder sb = new StringBuilder();
+            sb.append("  ");
+            sb.append(String.format("%1$-8s", players + "/" + slots));
+            sb.append("\n  ");
+            if (infos.containsKey("map")) {
+                sb.append(infos.get("map")).append(" ");
+                sb.append("\n  ");
+            }
+            if (infos.containsKey("game_short") && !infos.get("game_short").isEmpty()) {
+                sb.append(infos.get("game_short")).append(" ");
+            }
+            if (infos.containsKey("game_ver") && !infos.get("game_ver").isEmpty()) {
+                sb.append("(").append(infos.get("game_ver")).append(")");
+            }
+            fieldObjects[i] = new EmbedObject.EmbedFieldObject(
+                    infos.get("name"),
+                    "```" + sb.toString() + "```",
+                    false
+            );
+        }
+        return fieldObjects;
+    }
+
+    public static String dataToString(LobbyData datagram) {
         StringBuilder sb = new StringBuilder("```\n");
 
         int nbServers = datagram.getNbServers();
@@ -52,16 +103,19 @@ public class LobbyModule extends BotModule {
             Map<String, String> infos = serverDatagram.getInfos();
 
             sb.append(String.format("%1$-32s", infos.get("name")));
-            sb.append(String.format("%1$-21s", serverIP + ":" + serverPort));
             sb.append(String.format("%1$-8s", players + "/" + slots));
-            if (infos.containsKey("game_short")) {
-                sb.append(infos.get("game_short")).append(" ");
-            }
-            if (infos.containsKey("game_ver")) {
-                sb.append(infos.get("game_ver")).append(" ");
+            if (infos.containsKey("game_short") && !infos.get("game_short").isEmpty()) {
+                String fullThing;
+                if (infos.containsKey("game_ver") && !infos.get("game_ver").isEmpty()) {
+                    fullThing = String.format("%1$-16s", infos.get("game_short") + infos.get("game_ver"));
+                } else {
+                    fullThing = String.format("%1$-16s", infos.get("game_short"));
+                }
+                sb.append(fullThing);
+                sb.append("\t");
             }
             if (infos.containsKey("map")) {
-                sb.append(infos.get("map")).append(" ");
+                sb.append(infos.get("map")).append("\t");
             }
             sb.append("\n");
         }
@@ -69,7 +123,7 @@ public class LobbyModule extends BotModule {
         return sb.toString();
     }
 
-    private int countPlayers(LobbyData datagram) {
+    private static int countPlayers(LobbyData datagram) {
         int nbPlayers = 0;
         for (LobbyServerData serverDatagram : datagram.getServerData()) {
             nbPlayers += serverDatagram.getPlayers();
@@ -80,23 +134,24 @@ public class LobbyModule extends BotModule {
     @Override
     public boolean handle(MessageReceivedEvent t) {
         try {
-            IMessage message = t.getMessage().getChannel().sendMessage("Requesting lobby...");
+            IMessage message = this.getUtil().sendWithRateLimit("Requesting lobby...", t.getChannel());
             String errMsg = "";
 
             try {
                 errMsg = "Something went wrong contacting the lobby!";
                 Socket s = LobbyReader.sendLobbyRequest();
-                message.edit("Waiting for response from lobby...");
+                this.getUtil().editWithRateLimit("Waiting for response from lobby...", message);
                 LobbyData datagram = LobbyReader.readResponse(s);
                 String reply = this.dataToString(datagram);
                 int nbPlayers = this.countPlayers(datagram);
                 if (t.getMessage().getContent().toLowerCase().contains("count")) {
-                    message.edit(String.format("Done! There are %d players online.", nbPlayers, reply));
+                    this.getUtil().editWithRateLimit(String.format("Done! There are **%d** players online.", nbPlayers, reply), message);
                 } else {
-                    message.edit(String.format("Done! There are %d players online. %s", nbPlayers, reply));
+                    String eo = this.dataToString(datagram);
+                    this.getUtil().editWithRateLimit(String.format("Done! There are **%d** players online. %s", nbPlayers, eo), message);
                 }
             } catch (IOException ex) {
-                message.edit(errMsg + " " + ex.toString());
+                this.getUtil().editWithRateLimit(errMsg + " " + ex.toString(), message);
                 Logger.getLogger(LobbyModule.class.getName()).log(Level.WARNING, null, ex);
             }
 

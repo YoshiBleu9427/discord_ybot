@@ -175,6 +175,12 @@ public class QueueModule extends BotReactableModule {
                 if (user == this.getClient().getOurUser()) {
                     continue;
                 }
+                Logger.getLogger(QueueModule.class.getName()).log(Level.INFO, user == null ? "null" : "something");
+                if (user == null) {
+                    continue;
+                }
+                Logger.getLogger(QueueModule.class.getName()).log(Level.INFO, user.toString());
+                Logger.getLogger(QueueModule.class.getName()).log(Level.INFO, user.mention());
                 if (first) {
                     sb.append(user.mention());
                     first = false;
@@ -193,9 +199,16 @@ public class QueueModule extends BotReactableModule {
     @Override
     public void onReactAdd(ReactionAddEvent evt) {
         Queue q = this.findQueueFromEvent(evt);
+        if (q == null) {
+            return;
+        }
         this.updateMessageBody(q);
-        List<IUser> users = evt.getMessage().getReactionByEmoji(EMOJI).getUsers();
-        int cnt = users.size();
+        IReaction reaction = evt.getMessage().getReactionByEmoji(EMOJI);
+        int cnt = 0;
+        if (reaction != null) {
+            List<IUser> users = reaction.getUsers();
+            cnt = users.size();
+        }
         if ((cnt - 1) >= q.size) {
             this.dropQueue(q);
             this.onQueueEnd(q);
@@ -205,8 +218,15 @@ public class QueueModule extends BotReactableModule {
     @Override
     public void onReactRemove(ReactionRemoveEvent evt) {
         Queue q = this.findQueueFromEvent(evt);
-        List<IUser> users = evt.getMessage().getReactionByEmoji(EMOJI).getUsers();
-        int cnt = users.size();
+        if (q == null) {
+            return;
+        }
+        IReaction reaction = evt.getMessage().getReactionByEmoji(EMOJI);
+        int cnt = 0;
+        if (reaction != null) {
+            List<IUser> users = reaction.getUsers();
+            cnt = users.size();
+        }
         if ((cnt - 1) > 0) {
             this.updateMessageBody(q);
         } else {

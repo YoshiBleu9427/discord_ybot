@@ -5,6 +5,7 @@ import fr.yb.discordybot.gg2.LobbyData;
 import fr.yb.discordybot.gg2.LobbyReader;
 import fr.yb.discordybot.gg2.LobbyServerData;
 import fr.yb.discordybot.model.LobbySubModel;
+import fr.yb.discordybot.model.LobbyUpdatableSub;
 import java.io.IOException;
 import java.net.Socket;
 import java.time.Duration;
@@ -16,7 +17,9 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import sx.blah.discord.handle.impl.events.guild.channel.message.MessageReceivedEvent;
 import sx.blah.discord.handle.obj.IChannel;
+import sx.blah.discord.handle.obj.IMessage;
 import sx.blah.discord.handle.obj.IUser;
+import sx.blah.discord.util.RateLimitException;
 
 /*
  * To change this license header, choose License Headers in Project Properties.
@@ -35,6 +38,7 @@ public class LobbySubscriptionModule extends BotModule {
     
     public static final String COMMAND_ROOT = "sub";
     public static final String COMMAND_CHANNEL_ROOT = "subchan";
+    public static final String COMMAND_UPDATABLE_ROOT = "sub autoupdate";
     public static final String COMMAND_ADMIN_ROOT = "sub admin";
     
     public static final String COMMAND_ADD = COMMAND_ROOT;
@@ -47,11 +51,15 @@ public class LobbySubscriptionModule extends BotModule {
     public static final String COMMAND_LIST_CHANNEL = COMMAND_CHANNEL_ROOT + " show";
     public static final String COMMAND_COOLDOWN_CHANNEL = COMMAND_CHANNEL_ROOT + " cool";
     
+    public static final String COMMAND_ADD_UPDATABLE = COMMAND_UPDATABLE_ROOT;
+    public static final String COMMAND_REMOVE_UPDATABLE = COMMAND_UPDATABLE_ROOT + " remove";
+    public static final String COMMAND_LIST_UPDATABLE = COMMAND_UPDATABLE_ROOT + " show";
+    
     public static final String COMMAND_STATUS = COMMAND_ADMIN_ROOT + " status";
     public static final String COMMAND_START = COMMAND_ADMIN_ROOT + " start";
     public static final String COMMAND_STOP = COMMAND_ADMIN_ROOT + " stop";
     
-    public static final String NOTIFY_TEXT = "Gang Garrison 2 is alive with %d players online!";
+    public static final String NOTIFY_TEXT = "Gang Garrison 2 is alive with **%d** players online!";
     
     public class LobbyTask extends TimerTask {
     
@@ -100,6 +108,15 @@ public class LobbySubscriptionModule extends BotModule {
         }
     }
     
+    private String urlToMessage(long msgId, MessageReceivedEvent t) {
+        return String.format(
+                "<https://discord.com/channels/%d/%d/%d>",
+                t.getGuild().getLongID(),
+                t.getChannel().getLongID(),
+                msgId
+        );
+    }
+    
     public void updateCountFromLobby() throws IOException {
         Socket s = LobbyReader.sendLobbyRequest();
         LobbyData datagram = LobbyReader.readResponse(s);
@@ -126,7 +143,7 @@ public class LobbySubscriptionModule extends BotModule {
                     if (v.isChannel()) {
                         IChannel chan = this.getBot().getClient().getChannelByID(longID);
                         if (chan != null) {
-                            chan.sendMessage(notification);
+                            this.getUtil().sendWithRateLimit(notification, chan);
                             v.setLastPost(now);
                         } else {
                             Logger.getLogger(LobbySubscriptionModule.class.getName()).log(Level.WARNING, "Unknown channel ID {0}", longID);
@@ -136,7 +153,7 @@ public class LobbySubscriptionModule extends BotModule {
                         if (target != null) {
                             IChannel chan = target.getOrCreatePMChannel();
                             if (chan != null) {
-                                chan.sendMessage(notification);
+                                this.getUtil().sendWithRateLimit(notification, chan);
                                 v.setLastPost(now);
                             } else {
                                 Logger.getLogger(LobbySubscriptionModule.class.getName()).log(Level.WARNING, "Cannot get channel for user ID {0}", longID);
@@ -148,6 +165,26 @@ public class LobbySubscriptionModule extends BotModule {
                 }
             } catch (Exception ex) {
                 Logger.getLogger(LobbySubscriptionModule.class.getName()).log(Level.SEVERE, "Uncaught exception in the lobby subscription loop", ex);
+            }
+        });
+        
+        this.getBot().getModel().getLobbyUpdatableSubscriptions().forEach((chanID, sub) -> {
+            try {
+                IChannel chan = this.getClient().getChannelByID(chanID);
+                if (chan == null) {
+                    throw new NullPointerException("getChannelByID " + chanID + " failed");
+                }
+                IMessage msg = chan.fetchMessage(sub.getMsgId());
+                if (msg == null) {
+                    throw new NullPointerException("fetchMessage " + sub.getMsgId() + " failed");
+                }
+                String eo = LobbyModule.dataToString(datagram);
+                // eo.timestamp = DateTimeFormatter.ISO_INSTANT.format(now.toInstant());
+                this.getUtil().editWithRateLimit(eo, msg);
+            } catch (RateLimitException ex) {
+                Logger.getLogger(LobbySubscriptionModule.class.getName()).log(Level.SEVERE, "RateLimitException in the lobby AUTOUPDATE subscription loop: " + ex.getMethod() + ", " + ex.getRetryDelay(), ex);
+            } catch (Exception ex) {
+                Logger.getLogger(LobbySubscriptionModule.class.getName()).log(Level.SEVERE, "Uncaught exception in the lobby AUTOUPDATE subscription loop", ex);
             }
         });
         
@@ -178,6 +215,53 @@ public class LobbySubscriptionModule extends BotModule {
             }
         }
         
+        // autoupdates
+        else if (cmd.contains(COMMAND_UPDATABLE_ROOT)) {
+            // TODO fix permissions (issue with Discord4J?)
+            boolean isOwnerOrMe = (
+                this.getUtil().isMessageFromOwner(t)
+                    || t.getGuild().getOwner().getLongID() == t.getAuthor().getLongID()
+            );
+            if (!isOwnerOrMe) {
+                reply = "You need to be the server owner or bot owner to run this command!";
+                } else {
+                if (cmd.contains(COMMAND_LIST_UPDATABLE)) {
+                    LobbyUpdatableSub sub = this.getBot().getModel().getLobbyUpdatableSubscriptions().get(t.getChannel().getLongID());
+                    if (sub == null) {
+                        reply = "No autoupdate message in this channel";
+                    } else {
+                        String url = this.urlToMessage(sub.getMsgId(), t);
+                        reply = "An autoupdating status message exists in this channel: " + url;
+                    }
+                } else if (cmd.contains(COMMAND_REMOVE_UPDATABLE)) {
+                    LobbyUpdatableSub sub = this.getBot().getModel().getLobbyUpdatableSubscriptions().get(t.getChannel().getLongID());
+                    if (sub == null) {
+                        reply = "No autoupdate message in this channel";
+                    } else {
+                        this.getBot().getModel().getLobbyUpdatableSubscriptions().remove(t.getChannel().getLongID());
+                        String url = this.urlToMessage(sub.getMsgId(), t);
+                        reply = "The autoupdate message in this channel (" + url + ") has been frozen and will no longer be edited.";
+                    }
+                } else if (cmd.contains(COMMAND_ADD_UPDATABLE)) {
+                    LobbyUpdatableSub sub = this.getBot().getModel().getLobbyUpdatableSubscriptions().get(t.getChannel().getLongID());
+                    if (sub == null) {
+                        reply = "This message will update every 30 seconds with the freshest gg2 lobby status data!";
+                        IMessage sentMsg = this.getUtil().sendWithRateLimit(reply, t.getChannel());
+                        this.getBot().getModel().putLobbyUpdatableSubscription(
+                                new LobbyUpdatableSub(
+                                        sentMsg.getLongID(),
+                                        t.getChannel().getLongID()
+                                )
+                        );
+                        return false;
+                    } else {
+                        String url = this.urlToMessage(sub.getMsgId(), t);
+                        reply = "An autoupdating status message exists in this channel: " + url;
+                    }
+                }
+            }
+        }
+        
         // do the chans first because they're longer
         else if (cmd.contains(COMMAND_CHANNEL_ROOT)) {
             //if (!t.getAuthor().getPermissionsForGuild(t.getGuild()).contains(Permissions.ADMINISTRATOR)) {
@@ -190,7 +274,6 @@ public class LobbySubscriptionModule extends BotModule {
                 reply = "You need to be the server owner or bot owner to run this command!";
             } else {
                 final String chanID = String.valueOf(t.getChannel().getLongID());
-                // TODO do the things
                 if (cmd.contains(COMMAND_LIST_CHANNEL)) {
                     reply = this.commandList(chanID, cmd, true);
                 }
@@ -223,7 +306,7 @@ public class LobbySubscriptionModule extends BotModule {
             }
         }
         
-        t.getChannel().sendMessage(reply);
+        this.getUtil().sendWithRateLimit(reply, t.getChannel());
         return false;
     }
     
@@ -345,7 +428,8 @@ public class LobbySubscriptionModule extends BotModule {
                 + "`. Comes with a default cooldown of 60 minutes, change it with `" + COMMAND_COOLDOWN
                 + "`. Add an extra `chan` to the command to notify a channel "
                 + "instead of getting a DM, if you're a server admin (ie. `"
-                + COMMAND_ADD_CHANNEL + " <number>`).\n";
+                + COMMAND_ADD_CHANNEL + " <number>`). Create an autoupdating status with `" + COMMAND_ADD_UPDATABLE
+                + "`, cancel with `" + COMMAND_REMOVE_UPDATABLE + ".`\n";
     }
 
     @Override
