@@ -8,6 +8,7 @@
         "GreetModule",
         "TemModule",
         "PollEmojiModule",
+        "CustomEmojiModule",
         "ConsoleModule",
         "LogModule",
         "RandomFactModule",
@@ -23,6 +24,7 @@
         "LobbyModule",
         "LobbySubscriptionModule",
         "QueueModule",
+        "InviteModule",
         "RoleModule",
         "RollModule",
         "HelpModule"

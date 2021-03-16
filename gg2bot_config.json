@@ -11,7 +11,7 @@
         "ProfileModule",
         "LobbyModule",
         "LobbySubscriptionModule",
-        "QueueModule",
+        "InviteModule",
         "HelpModule",
         "MapModule"
     ]
