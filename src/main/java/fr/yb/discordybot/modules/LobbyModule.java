@@ -36,8 +36,11 @@ public class LobbyModule extends BotModule {
     public static final TemporalAmount COOLDOWN_RESET_TIME = Duration.ofMinutes(5);
     public static final double CHANCE_EXTRA = 0.01;
     public static final int MODIFIER_EXTRA = 30;
-    
-    
+
+    public static final int STYLE_EMBED = 0;
+    public static final int STYLE_TEXT = 1;
+    public static final int STYLE_DEFAULT = STYLE_TEXT;
+
     public static EmbedObject dataToEmbed(LobbyData datagram) {
         EmbedObject eo = new EmbedObject();
         int nbPlayers = countPlayers(datagram);
@@ -50,7 +53,7 @@ public class LobbyModule extends BotModule {
         eo.fields = dataToEmbedFields(datagram);
         return eo;
     }
-    
+
     public static EmbedObject.EmbedFieldObject[] dataToEmbedFields(LobbyData datagram) {
         // init embed fields
         EmbedObject.EmbedFieldObject[] fieldObjects = new EmbedObject.EmbedFieldObject[datagram.getServerData().size()];
@@ -134,9 +137,28 @@ public class LobbyModule extends BotModule {
     @Override
     public boolean handle(MessageReceivedEvent t) {
         try {
-            IMessage message = this.getUtil().sendWithRateLimit("Requesting lobby...", t.getChannel());
             String errMsg = "";
+            String recvMsg = t.getMessage().getContent().toLowerCase();
 
+            // style
+            if (recvMsg.contains(" style ")) {
+                String styleType = recvMsg.substring(recvMsg.indexOf(" style ") + " style".length()).trim();
+                int style = STYLE_DEFAULT;
+                String styleStr = "default (plain text)";
+                if (styleType.equals("text")) {
+                    style = STYLE_TEXT;
+                    styleStr = "plain text";
+                } else if (styleType.equals("embed")) {
+                    style = STYLE_EMBED;
+                    styleStr = "embed";
+                }
+                this.getBot().getModel().putLobbyStylesByGuild(t.getGuild().getLongID(), style);
+                this.getUtil().sendWithRateLimit("Updated lobby style to " + styleStr, t.getChannel());
+                return false;
+            }
+
+            // default
+            IMessage message = this.getUtil().sendWithRateLimit("Requesting lobby...", t.getChannel());
             try {
                 errMsg = "Something went wrong contacting the lobby!";
                 Socket s = LobbyReader.sendLobbyRequest();
@@ -144,11 +166,17 @@ public class LobbyModule extends BotModule {
                 LobbyData datagram = LobbyReader.readResponse(s);
                 String reply = this.dataToString(datagram);
                 int nbPlayers = this.countPlayers(datagram);
-                if (t.getMessage().getContent().toLowerCase().contains("count")) {
+                if (recvMsg.contains("count")) {
                     this.getUtil().editWithRateLimit(String.format("Done! There are **%d** players online.", nbPlayers, reply), message);
                 } else {
-                    String eo = this.dataToString(datagram);
-                    this.getUtil().editWithRateLimit(String.format("Done! There are **%d** players online. %s", nbPlayers, eo), message);
+                    int style = this.getBot().getModel().getLobbyStylesByGuild().getOrDefault(t.getGuild().getLongID(), STYLE_DEFAULT);
+                    if (style == STYLE_EMBED) {
+                        EmbedObject eo = dataToEmbed(datagram);
+                        this.getUtil().editWithRateLimit(eo, message);
+                    } else { // it's text
+                        String eo = this.dataToString(datagram);
+                        this.getUtil().editWithRateLimit(String.format("Done! There are **%d** players online. %s", nbPlayers, eo), message);
+                    }
                 }
             } catch (IOException ex) {
                 this.getUtil().editWithRateLimit(errMsg + " " + ex.toString(), message);
@@ -169,7 +197,9 @@ public class LobbyModule extends BotModule {
     @Override
     public String help() {
         return "**LobbyModule**: Reports on the gg2 lobby. `" + this.getFullCommand()
-                + "` or `" + this.getFullCommand() + " count`\n";
+                + "` or `" + this.getFullCommand() + " count`. "
+                + "Change format with `" + this.getFullCommand() + " style text` or "
+                + "`" + this.getFullCommand() + " style embed`.\n";
     }
 
     @Override
