@@ -142,7 +142,7 @@ public class LobbyModule extends BotModule {
 
             // style
             if (recvMsg.contains(" style ")) {
-                String styleType = recvMsg.substring(recvMsg.indexOf(" style "));
+                String styleType = recvMsg.substring(recvMsg.indexOf(" style ") + " style".length()).trim();
                 int style = STYLE_DEFAULT;
                 String styleStr = "default (plain text)";
                 if (styleType.equals("text")) {
