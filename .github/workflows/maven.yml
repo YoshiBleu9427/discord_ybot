@@ -37,11 +37,17 @@ jobs:
         name: build-${{ github.sha }}
     - name: Copy conf
       run: cp ybot_config.json deploy_config.json
-    - name: Prepare conf
+    - name: Prepare conf token
       uses: deef0000dragon1/json-edit-action/@v1
       env:
         KEY: token
         VALUE: ${{ secrets.BOT_TOKEN }}
+        FILE: deploy_config.json
+    - name: Prepare conf prefix
+      uses: deef0000dragon1/json-edit-action/@v1
+      env:
+        KEY: prefix
+        VALUE: "test "
         FILE: deploy_config.json
     - name: Deploy
       run: java -Dfile.encoding=UTF-8 -jar DiscordYBot-1.0-SNAPSHOT.jar --config-file deploy_config.json
