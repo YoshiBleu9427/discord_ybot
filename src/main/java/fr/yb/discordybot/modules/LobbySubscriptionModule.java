@@ -10,11 +10,13 @@ import java.io.IOException;
 import java.net.Socket;
 import java.time.Duration;
 import java.time.Instant;
+import java.time.format.DateTimeFormatter;
 import java.util.Date;
 import java.util.Timer;
 import java.util.TimerTask;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import sx.blah.discord.api.internal.json.objects.EmbedObject;
 import sx.blah.discord.handle.impl.events.guild.channel.message.MessageReceivedEvent;
 import sx.blah.discord.handle.obj.IChannel;
 import sx.blah.discord.handle.obj.IMessage;
@@ -178,9 +180,15 @@ public class LobbySubscriptionModule extends BotModule {
                 if (msg == null) {
                     throw new NullPointerException("fetchMessage " + sub.getMsgId() + " failed");
                 }
-                String eo = LobbyModule.dataToString(datagram);
-                // eo.timestamp = DateTimeFormatter.ISO_INSTANT.format(now.toInstant());
-                this.getUtil().editWithRateLimit(eo, msg);
+                int style = this.getBot().getModel().getLobbyStylesByGuild().getOrDefault(msg.getGuild().getLongID(), LobbyModule.STYLE_DEFAULT);
+                if (style == LobbyModule.STYLE_EMBED) {
+                    EmbedObject eo = LobbyModule.dataToEmbed(datagram);
+                    eo.timestamp = DateTimeFormatter.ISO_INSTANT.format(now.toInstant());
+                    this.getUtil().editWithRateLimit(eo, msg);
+                } else { // text
+                    String eo = LobbyModule.dataToString(datagram);
+                    this.getUtil().editWithRateLimit(eo, msg);
+                }
             } catch (RateLimitException ex) {
                 Logger.getLogger(LobbySubscriptionModule.class.getName()).log(Level.SEVERE, "RateLimitException in the lobby AUTOUPDATE subscription loop: " + ex.getMethod() + ", " + ex.getRetryDelay(), ex);
             } catch (Exception ex) {
