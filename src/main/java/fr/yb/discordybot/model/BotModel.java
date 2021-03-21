@@ -19,21 +19,21 @@ public class BotModel implements Serializable {
     private Map<String, UserModel> users;
     private Map<String, LobbySubModel> lobbySubscriptions;
     private Map<Long, LobbyUpdatableSub> lobbyUpdatableSubscriptions;
-    private Map<Long, Integer> lobbyStyleByGuild;
+    private Map<Long, Integer> lobbyStyleByChannel;
 
     public BotModel() {
         this.users = new HashMap<>();
         this.lobbySubscriptions = new HashMap<>();
         this.lobbyUpdatableSubscriptions = new HashMap<>();
-        this.lobbyStyleByGuild = new HashMap<>();
+        this.lobbyStyleByChannel = new HashMap<>();
     }
 
-    public Map<Long, Integer> getLobbyStylesByGuild() {
-        return lobbyStyleByGuild;
+    public Map<Long, Integer> getLobbyStylesByChannel() {
+        return lobbyStyleByChannel;
     }
 
-    public Integer putLobbyStylesByGuild(long guildId, Integer lobbyStyle) {
-        return this.lobbyStyleByGuild.put(guildId, lobbyStyle);
+    public Integer putLobbyStylesByChannel(long guildId, Integer lobbyStyle) {
+        return this.lobbyStyleByChannel.put(guildId, lobbyStyle);
     }
 
     public Map<Long, LobbyUpdatableSub> getLobbyUpdatableSubscriptions() {

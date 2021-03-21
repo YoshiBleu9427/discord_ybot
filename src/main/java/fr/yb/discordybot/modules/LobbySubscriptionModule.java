@@ -111,6 +111,13 @@ public class LobbySubscriptionModule extends BotModule {
     }
     
     private String urlToMessage(long msgId, MessageReceivedEvent t) {
+        if (t.getGuild() == null) {
+            return String.format(
+                    "<https://discord.com/channels/@me/%d/%d>",
+                    t.getChannel().getLongID(),
+                    msgId
+            );
+        }
         return String.format(
                 "<https://discord.com/channels/%d/%d/%d>",
                 t.getGuild().getLongID(),
@@ -180,7 +187,7 @@ public class LobbySubscriptionModule extends BotModule {
                 if (msg == null) {
                     throw new NullPointerException("fetchMessage " + sub.getMsgId() + " failed");
                 }
-                int style = this.getBot().getModel().getLobbyStylesByGuild().getOrDefault(msg.getGuild().getLongID(), LobbyModule.STYLE_DEFAULT);
+                int style = this.getBot().getModel().getLobbyStylesByChannel().getOrDefault(chanID, LobbyModule.STYLE_DEFAULT);
                 if (style == LobbyModule.STYLE_EMBED) {
                     EmbedObject eo = LobbyModule.dataToEmbed(datagram);
                     eo.timestamp = DateTimeFormatter.ISO_INSTANT.format(now.toInstant());
@@ -226,6 +233,10 @@ public class LobbySubscriptionModule extends BotModule {
         // autoupdates
         else if (cmd.contains(COMMAND_UPDATABLE_ROOT)) {
             // TODO fix permissions (issue with Discord4J?)
+            if (t.getGuild() == null) {
+                this.getUtil().sendWithRateLimit("This command does not support DMs.", t.getChannel());
+                return false;
+            }
             boolean isOwnerOrMe = (
                 this.getUtil().isMessageFromOwner(t)
                     || t.getGuild().getOwner().getLongID() == t.getAuthor().getLongID()
@@ -274,6 +285,10 @@ public class LobbySubscriptionModule extends BotModule {
         else if (cmd.contains(COMMAND_CHANNEL_ROOT)) {
             //if (!t.getAuthor().getPermissionsForGuild(t.getGuild()).contains(Permissions.ADMINISTRATOR)) {
             // TODO fix permissions (issue with Discord4J?)
+            if (t.getGuild() == null) {
+                this.getUtil().sendWithRateLimit("This command does not support DMs.", t.getChannel());
+                return false;
+            }
             boolean isOwnerOrMe = (
                 this.getUtil().isMessageFromOwner(t)
                     || t.getGuild().getOwner().getLongID() == t.getAuthor().getLongID()

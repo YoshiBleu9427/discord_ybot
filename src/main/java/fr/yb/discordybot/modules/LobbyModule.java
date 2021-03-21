@@ -152,7 +152,7 @@ public class LobbyModule extends BotModule {
                     style = STYLE_EMBED;
                     styleStr = "embed";
                 }
-                this.getBot().getModel().putLobbyStylesByGuild(t.getGuild().getLongID(), style);
+                this.getBot().getModel().putLobbyStylesByChannel(t.getChannel().getLongID(), style);
                 this.getUtil().sendWithRateLimit("Updated lobby style to " + styleStr, t.getChannel());
                 return false;
             }
@@ -169,7 +169,7 @@ public class LobbyModule extends BotModule {
                 if (recvMsg.contains("count")) {
                     this.getUtil().editWithRateLimit(String.format("Done! There are **%d** players online.", nbPlayers, reply), message);
                 } else {
-                    int style = this.getBot().getModel().getLobbyStylesByGuild().getOrDefault(t.getGuild().getLongID(), STYLE_DEFAULT);
+                    int style = this.getBot().getModel().getLobbyStylesByChannel().getOrDefault(t.getChannel().getLongID(), STYLE_DEFAULT);
                     if (style == STYLE_EMBED) {
                         EmbedObject eo = dataToEmbed(datagram);
                         this.getUtil().editWithRateLimit(eo, message);
