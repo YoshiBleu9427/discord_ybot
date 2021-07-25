@@ -85,12 +85,14 @@ public class MicrowaveModule extends BotModule {
     };
     
     public static final String MICROWAVE_STATE_FINAL = 
-              "   ________ ________________________            \n"  
-            + "  | _____  |XXXXXXXXXXXXXXXXXX| ___ |   DING    \n"  
-            + " |||     | |X      ~~~~      X|   / |           \n"  
-            + " |||     | |X    ~~~~        X| _V_ |           \n"  
-            + " |||     | |X      .         X|     |           \n"  
-            + " |||_____| |X\\______________/X| O O |           \n"  
+              "                         (                      \n"  
+            + "               '          )                     \n"  
+            + "   ________ ____)___ ____(__________            \n"  
+            + "  | _____  |===(====)=========| ___ |   DING    \n"  
+            + " |||     | ||/  )  (   )     ||   / |           \n"  
+            + " |||     | ||       ) (      || _V_ |           \n"  
+            + " |||     | ||      .         ||     |           \n"  
+            + " |||_____| ||\\______________/|| O O |           \n"  
             + "  |________ __________________|_____            \n"  
     ;
     
@@ -120,11 +122,12 @@ public class MicrowaveModule extends BotModule {
             try {
                 for (int i = DURATION_SECS; i > 0; i--) {
                     eo.description = "```" + MICROWAVE_STATES[microwaveState].replace("000", String.format("%3d", i)) + "```";
-                    msg.edit(eo);
+                    this.getParent().getUtil().editWithRateLimit(eo, msg);
                     Thread.sleep(1000);
                     microwaveState = (microwaveState + 1) % MICROWAVE_STATES.length;
                 }
-                msg.edit("```" + MICROWAVE_STATE_FINAL + "```");
+                eo.description = "```" + MICROWAVE_STATE_FINAL + "```";
+                this.getParent().getUtil().editWithRateLimit(eo, msg);
                 
             } catch (InterruptedException ex) {
                 Logger.getLogger(MicrowaveModule.class.getName()).log(Level.SEVERE, null, ex);
@@ -149,10 +152,10 @@ public class MicrowaveModule extends BotModule {
 
     @Override
     public boolean isInterestedIn(MessageReceivedEvent t) {
-        if (!this.getUtil().isMessageForMe(t)) {
+        String msg = t.getMessage().getContent().toLowerCase();
+        if (!msg.contains(this.getBot().getConfig().getPrefix())) {
             return false;
         }
-        String msg = t.getMessage().getContent().toLowerCase();
         if (msg.contains("microwave") && msg.contains("start")) {
             return true;
         }

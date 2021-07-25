@@ -40,11 +40,18 @@ public class HelpModule extends BotModule {
                 }
             } else {
                 Collection<BotModule> modules = this.getBot().getLoader().getInstances().values();
+                boolean isMsgFromOwner = this.getUtil().isMessageFromOwner(t);
                 StringBuilder sb = new StringBuilder("The following modules are active:\n```");
                 for (BotModule m : modules) {
                     String fullClassName = m.getClass().getName();
                     String smolClassName = fullClassName.substring(fullClassName.lastIndexOf('.') + 1);
-                    sb.append(String.format("%1$-32s", smolClassName));
+                    if (!m.isActive()) {
+                        if (isMsgFromOwner) {
+                            sb.append(String.format("(*)%1$-29s", smolClassName));
+                        }
+                    } else {
+                        sb.append(String.format("%1$-32s", smolClassName));
+                    }
                 }
                 sb.append("```\nSend `")
                         .append(this.getFullCommand())

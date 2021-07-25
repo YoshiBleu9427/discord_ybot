@@ -31,6 +31,8 @@ public class ProfileModule extends BotModule {
             
             String cmdNick = this.getFullCommand() + " nick";
             String cmdPlay = this.getFullCommand() + " play";
+            String cmdWatch = this.getFullCommand() + " watch";
+            String cmdAway = this.getFullCommand() + " away";
             
             if (msgLower.startsWith(cmdNick)) {
                 item = msg.substring(cmdNick.length()).trim();
@@ -42,6 +44,16 @@ public class ProfileModule extends BotModule {
                 this.getClient().changePresence(StatusType.ONLINE, ActivityType.PLAYING, item);
                 reply = String.format("Set playing text to `%s`!", item);
             }
+            else if (msgLower.startsWith(cmdWatch)) {
+                item = msg.substring(cmdWatch.length()).trim();
+                this.getClient().changePresence(StatusType.ONLINE, ActivityType.WATCHING, item);
+                reply = String.format("Set watching text to `%s`!", item);
+            }
+            else if (msgLower.startsWith(cmdAway)) {
+                item = msg.substring(cmdAway.length()).trim();
+                this.getClient().changePresence(StatusType.IDLE, ActivityType.PLAYING, item);
+                reply = String.format("Set status to IDLE and playing text to `%s`!", item);
+            }
             t.getChannel().sendMessage(reply);
         } catch (MissingPermissionsException | RateLimitException | DiscordException ex) {
             Logger.getLogger(ProfileModule.class.getName()).log(Level.SEVERE, null, ex);
@@ -51,7 +63,7 @@ public class ProfileModule extends BotModule {
 
     @Override
     public String help() {
-        return "**ProfileModule**: Changes "+this.getUtil().getName()+"'s nickname or playing status. `"+this.getFullCommand()+" (nick|play)`\n";
+        return "**ProfileModule**: Changes "+this.getUtil().getName()+"'s nickname or playing status. `"+this.getFullCommand()+" (nick|play|watch|away)`\n";
     }
 
     @Override
