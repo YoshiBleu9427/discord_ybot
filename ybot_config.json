@@ -3,6 +3,7 @@
     "prefix": "ybot ",
     "ownerID": "169169139750010880",
     "modelFile": "BotModel.json",
+    "cardsFile": "CardDefinitions.json",
     "modules": [
         "LoginModule",
         "GreetModule",
@@ -10,6 +11,7 @@
         "PollEmojiModule",
         "CustomEmojiModule",
         "ConsoleModule",
+        "CardsModule",
         "LogModule",
         "RandomFactModule",
         "ChooseModule",

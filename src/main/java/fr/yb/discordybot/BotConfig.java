@@ -19,18 +19,11 @@ public class BotConfig implements Serializable {
     private String prefix;
     private String token;
     private String modelFile;
+    private String cardsFile;
     private List<String> modules;
 
     public BotConfig() {
         this.modules = new ArrayList<>();
-    }
-
-    public BotConfig(String ownerID, String prefix, String token, String modelFile, List<String> modules) {
-        this.ownerID = ownerID;
-        this.prefix = prefix;
-        this.token = token;
-        this.modelFile = modelFile;
-        this.modules = modules;
     }
 
     public String getOwnerID() {
@@ -63,6 +56,14 @@ public class BotConfig implements Serializable {
 
     public void setModelFile(String modelFile) {
         this.modelFile = modelFile;
+    }
+
+    public String getCardsFile() {
+        return cardsFile;
+    }
+
+    public void setCardsFile(String cardsFile) {
+        this.cardsFile = cardsFile;
     }
 
     public List<String> getModules() {

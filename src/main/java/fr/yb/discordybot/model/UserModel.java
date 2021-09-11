@@ -5,7 +5,7 @@
  */
 package fr.yb.discordybot.model;
 
-import fr.yb.discordybot.modules.ReminderModule;
+import fr.yb.discordybot.model.cards.CardOwnership;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
@@ -20,12 +20,14 @@ public class UserModel implements Serializable {
     private String id; // longID
     private List<String> aliases;
     private List<ReminderModel> reminders;
+    private List<CardOwnership> cards;
     
     private int fren;
 
     public UserModel() {
         this.aliases = new ArrayList<>();
         this.reminders = new ArrayList<>();
+        this.cards = new ArrayList<>();
     }
     
     public boolean is(String alias) {
@@ -63,6 +65,10 @@ public class UserModel implements Serializable {
 
     public List<ReminderModel> getReminders() {
         return reminders;
+    }
+
+    public List<CardOwnership> getCards() {
+        return cards;
     }
 
     public int getFren() {
