@@ -4,6 +4,7 @@ import com.google.gson.Gson;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.util.List;
+import java.util.NoSuchElementException;
 import java.util.Scanner;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -102,6 +103,20 @@ public class Launcher {
                         break;
                     default:
                         System.out.println("Commands: exit, module");
+                }
+            } catch (NoSuchElementException ex) {
+                if (ex.getMessage().equalsIgnoreCase("No line found")) {
+                    System.out.println("Scanner failed, probably not in a tty. Eternal sleep inbound.");
+                    while(true) {
+                        System.out.println("Just 5 minutes...");
+                        try {
+                            Thread.sleep(5 * 60 * 1000);
+                        } catch (InterruptedException ex1) {
+                            Logger.getLogger(Launcher.class.getName()).log(Level.SEVERE, null, ex1);
+                        }
+                    }
+                } else {
+                    throw ex;
                 }
             } catch (Exception ex) {
                 bot.save();
