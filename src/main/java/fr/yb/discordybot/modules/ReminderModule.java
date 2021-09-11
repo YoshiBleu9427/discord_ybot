@@ -179,19 +179,17 @@ public class ReminderModule extends BotModule {
             }
             String timeValueText = timeInterests[0];
             String timeUnitText = timeInterests[1];
+            if (timeUnitText.length() < 3) {
+                throw new MisunderstandException("Bad time unit");
+            }
             int multiplier = 1000;
-            switch (timeUnitText) {
-                case "hours":
-                case "hour":
+            switch (timeUnitText.substring(0, 3)) {
+                case "hou":
                     multiplier *= 60 * 60;
                     break;
-                case "minutes":
-                case "minute":
                 case "min":
                     multiplier *= 60;
                     break;
-                case "seconds":
-                case "second":
                 case "sec":
                     // all good
                     break;
