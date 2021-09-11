@@ -1,8 +1,7 @@
-package fr.yb.discordybot.gg2;
+package fr.yb.discordybot.gg2.map;
 
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import fr.yb.discordybot.gg2.map.SimilarMapFinder;
 
 import java.io.IOException;
 import java.net.URI;

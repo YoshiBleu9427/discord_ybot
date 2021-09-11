@@ -1,4 +1,4 @@
-package fr.yb.discordybot.gg2;
+package fr.yb.discordybot.gg2.map;
 
 public interface MapRepository {
     String getMapFileURL(String mapName) throws Exception;

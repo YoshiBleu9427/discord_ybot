@@ -1,8 +1,8 @@
 package fr.yb.discordybot.modules;
 
 import fr.yb.discordybot.BotModule;
-import fr.yb.discordybot.gg2.GitHubArchiveMapRepository;
-import fr.yb.discordybot.gg2.MapRepository;
+import fr.yb.discordybot.gg2.map.GitHubArchiveMapRepository;
+import fr.yb.discordybot.gg2.map.MapRepository;
 import sx.blah.discord.handle.impl.events.guild.channel.message.MessageReceivedEvent;
 import sx.blah.discord.util.DiscordException;
 import sx.blah.discord.util.MissingPermissionsException;
