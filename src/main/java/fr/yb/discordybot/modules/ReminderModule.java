@@ -310,7 +310,13 @@ public class ReminderModule extends BotModule {
             try {
                 reminder.setDataFromMessage(t);
                 this.reminders.add(reminder);
-                t.getMessage().getChannel().sendMessage(String.format(REPLY, DateFormat.getInstance().format(reminder.scheduleTime)));
+                t.getMessage().getChannel().sendMessage(String.format(
+                        REPLY,
+                        String.format(
+                            "<t:%d>",
+                            reminder.scheduleTime.getTime() / 1000
+                        )
+                ));
                 return false;
             } catch (MisunderstandException ex) {
                 t.getMessage().getChannel().sendMessage(HELP);
