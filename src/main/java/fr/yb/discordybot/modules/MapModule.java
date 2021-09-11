@@ -43,7 +43,7 @@ public class MapModule extends BotModule {
         String mapName = parseMapName(inputCommand);
         if (mapName != null) {
             try {
-                response = mapRepository.getMapLocation(mapName);
+                response = mapRepository.getMapFileURL(mapName);
             } catch (Exception e) {
                 Logger.getLogger(MapModule.class.getName()).log(Level.WARNING, null, e);
                 response = "Failed to get map. Error in console.";
@@ -51,7 +51,7 @@ public class MapModule extends BotModule {
         } else {
             try {
                 mapName = mapRepository.getRandomMapName();
-                response = mapRepository.getMapLocation(mapName);
+                response = mapRepository.getMapFileURL(mapName);
             } catch (Exception e) {
                 Logger.getLogger(MapModule.class.getName()).log(Level.WARNING, null, e);
                 response = "Failed to get map. Error in console.";

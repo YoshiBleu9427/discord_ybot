@@ -2,6 +2,7 @@ package fr.yb.discordybot.gg2;
 
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import fr.yb.discordybot.gg2.map.SimilarMapFinder;
 
 import java.io.IOException;
 import java.net.URI;
@@ -15,9 +16,9 @@ import java.util.logging.Logger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 public class GitHubArchiveMapRepository implements MapRepository {
-
     private static Map<String, String> cachedNameToFileLocationMapping;
     private String repoOwner;
     private String repoName;
@@ -31,30 +32,47 @@ public class GitHubArchiveMapRepository implements MapRepository {
 
     @Override
     public String getNotFoundMessage(String mapName) {
-        return String.format("`%s` wasn't found in the map archives", mapName);
+        String notFoundMessage = String.format("`%s` wasn't found in the map archives", mapName);
+        try {
+            SimilarMapFinder similarMapFinder = new SimilarMapFinder();
+            double cutoffSimilarityScore = 0.85;  // magic value
+            List<String> matches = similarMapFinder.getSimilarMapNames(
+                mapName, this.getKnownMapNames(), 5, cutoffSimilarityScore);
+            if (matches.isEmpty()) {
+                return notFoundMessage;
+            } else {
+                StringBuilder sb = new StringBuilder(notFoundMessage);
+                sb.append(". Did you mean ```");
+                for (String possibleMapName : matches) {
+                    sb.append(possibleMapName).append(System.lineSeparator());
+                }
+                sb.append("```");
+                return sb.toString();
+            }
+        } catch (Exception e) {
+            return notFoundMessage;
+        }
     }
 
     @Override
-    public String getMapLocation(String mapName) throws IOException {
+    public String getMapFileURL(String mapName) throws IOException {
         Map<String, String> nameToFileLocationMapping = getNameToFileLocationMapping();
         String mapFilePath = nameToFileLocationMapping.get(mapName);
         if (mapFilePath == null) {
             return null;
         }
-        return getContentUrl(mapFilePath);
+        return getContentURL(mapFilePath);
     }
 
     @Override
     public String getRandomMapName() throws Exception {
-        if (cachedNameToFileLocationMapping == null) {
-            generateMapArchive();
-        }
+        Map<String, String> nameToFileLocationMapping = getNameToFileLocationMapping();
         Random rand = new Random();
-        int nextInt = rand.nextInt(cachedNameToFileLocationMapping.size());
-        return cachedNameToFileLocationMapping.keySet().toArray()[nextInt].toString(); // lmao
+        int nextInt = rand.nextInt(nameToFileLocationMapping.size());
+        return nameToFileLocationMapping.keySet().toArray()[nextInt].toString(); // lmao
     }
 
-    private String getContentUrl(String mapFilePath) {
+    private String getContentURL(String mapFilePath) {
         try {
             return new URI(
                     "https",
@@ -73,6 +91,11 @@ public class GitHubArchiveMapRepository implements MapRepository {
             return String.format("https://raw.githubusercontent.com/%s/%s/%s/%s",
                     repoOwner, repoName, branchName, mapFilePath); 
         }
+    }
+
+    private Stream<String> getKnownMapNames() throws IOException {
+        Map<String, String> nameToFileLocationMapping = getNameToFileLocationMapping();
+        return nameToFileLocationMapping.keySet().stream();
     }
 
     private Map<String, String> getNameToFileLocationMapping() throws IOException {

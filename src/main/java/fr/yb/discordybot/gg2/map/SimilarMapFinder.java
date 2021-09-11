@@ -14,8 +14,11 @@ import java.util.stream.Stream;
 import static java.util.Comparator.reverseOrder;
 
 public class SimilarMapFinder {
+    /**
+     * @param cutoffSimilarityScore a real number between 0 and 1. 1 represents an exact match.
+     */
     public List<String> getSimilarMapNames(String mapNameToMatch, Stream<String> knownMapNames,
-                                           int first, double cutoffDistanceScore) {
+                                           int first, double cutoffSimilarityScore) {
         SimilarityScore<Double> stringComparator = new JaroWinklerSimilarity();
         MapName mapToMatch = new MapName(mapNameToMatch);
         Stream<MapName> knownMaps = knownMapNames.map(MapName::new);
@@ -25,7 +28,7 @@ public class SimilarMapFinder {
         return knownMaps
             .map(mapName -> new AbstractMap.SimpleEntry<>(
                 mapName.fullName, stringComparator.apply(mapName.getName(), mapToMatch.getName())))
-            .filter(entry -> entry.getValue() >= cutoffDistanceScore)
+            .filter(entry -> entry.getValue() >= cutoffSimilarityScore)
             .sorted(Map.Entry.comparingByValue(reverseOrder()))
             .limit(first)
             .map(AbstractMap.SimpleEntry::getKey)
